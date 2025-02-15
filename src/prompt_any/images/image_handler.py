@@ -2,20 +2,30 @@
 Main class for handling image operations.
 """
 
-from typing import Dict, Union
-import asyncio
-
-from prompt_any.images.sources.base import ImageSource
+from typing import Dict, Union, Optional
+from prompt_any.images.sources.image_source import ImageSource
 from prompt_any.core.errors import ImageProcessingError
-from prompt_any.providers.base import ProviderHelper
+from prompt_any.providers.provider_helper import ProviderHelper
+from prompt_any.images.sources.local_file_source import LocalFileSource
+from prompt_any.images.sources.http_source import HttpSource
+from prompt_any.images.sources.s3_source import S3Source
 
 
 class ImageHandler:
     """Main class for handling image operations."""
 
-    def __init__(self) -> None:
+    def __init__(self, s3_client: Optional[boto3.client] = None) -> None:
         """Initialize the ImageHandler with an empty dictionary of registered sources."""
         self.sources: Dict[str, ImageSource] = {}
+
+        # Automatically register built-in image sources:
+        # Register local and HTTP sources
+        self.register_source("file", LocalFileSource())
+        self.register_source("http", HttpSource())
+        self.register_source("https", HttpSource())
+        # Register S3 source only if an S3 client is provided.
+        if s3_client is not None:
+            self.register_source("s3", S3Source(s3_client))
 
     def register_source(self, protocol: str, source: ImageSource) -> None:
         """

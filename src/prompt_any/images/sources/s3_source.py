@@ -4,7 +4,7 @@ Loads images from S3.
 
 from typing import Tuple
 
-from prompt_any.images.sources.base import ImageSource
+from prompt_any.images.sources.image_source import ImageSource
 from prompt_any.images.errors import ImageSourceError
 
 

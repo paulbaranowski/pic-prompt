@@ -1,14 +1,29 @@
 """
-prompt-any - A library for building prompts for various LLM providers
+Prompt-Any Package
+
+This package provides core functionality for building prompts and handling images.
 """
 
-from prompt_any.core.messages import PromptMessage, MessageType
-from prompt_any.core.config import PromptConfig, ImageConfig
-from prompt_any.builder.base import PromptBuilder
-from prompt_any.builder.async_builder import AsyncPromptBuilder
-from prompt_any.core.errors import (
+from prompt_any.core import (
+    PromptMessage,
+    MessageType,
+    PromptConfig,
+    ImageConfig,
     PromptBuilderError,
     ConfigurationError,
     ProviderError,
-    ImageProcessingError
-) 
+    ImageProcessingError,
+)
+
+__version__ = "0.1.0"
+
+__all__ = [
+    "PromptMessage",
+    "MessageType", 
+    "PromptConfig",
+    "ImageConfig",
+    "PromptBuilderError",
+    "ConfigurationError",
+    "ProviderError",
+    "ImageProcessingError",
+]

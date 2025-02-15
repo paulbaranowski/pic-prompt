@@ -6,17 +6,19 @@
 + │   └── prompt_any/    # Note underscore in package name
 + │       ├── __init__.py              # Main package exports
 + │       ├── core/
-+ │       │   ├── __init__.py
-+ │       │   ├── messages.py          # PromptMessage, MessageType
-+ │       │   ├── config.py            # PromptConfig, ImageConfig
-+ │       │   └── errors.py            # All error classes
++ │       │   ├── __init__.py          # Core module exports
++ │       │   ├── prompt_message.py     # PromptMessage class
++ │       │   ├── message_type.py       # MessageType enum
++ │       │   ├── prompt_config.py      # PromptConfig class
++ │       │   ├── image_config.py       # ImageConfig class
++ │       │   └── errors.py             # Error classes
 + │       ├── providers/
-+ │       │   ├── __init__.py
-+ │       │   ├── base.py              # ProviderHelper base class
-+ │       │   ├── factory.py           # ProviderHelperFactory
-+ │       │   ├── openai.py            # OpenAI implementation
-+ │       │   ├── anthropic.py         # Anthropic implementation
-+ │       │   └── gemini.py            # Gemini implementation
++ │       │   ├── __init__.py          # Provider module exports
++ │       │   ├── provider_helper.py    # ProviderHelper base class
++ │       │   ├── provider_helper_factory.py  # Factory class
++ │       │   ├── provider_helper_openai.py   # OpenAI implementation
++ │       │   ├── provider_helper_anthropic.py # Anthropic implementation
++ │       │   └── provider_helper_gemini.py    # Gemini implementation
 + │       ├── images/
 + │       │   ├── __init__.py
 + │       │   ├── handler.py           # ImageHandler

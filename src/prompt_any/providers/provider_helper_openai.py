@@ -6,9 +6,10 @@ import json
 import base64
 from typing import List, Union
 
-from prompt_any.providers.base import ProviderHelper
-from prompt_any.core.config import ImageConfig, PromptConfig
-from prompt_any.core.messages import PromptMessage
+from prompt_any.providers.provider_helper import ProviderHelper
+from prompt_any.core.image_config import ImageConfig
+from prompt_any.core.prompt_config import PromptConfig
+from prompt_any.core.prompt_message import PromptMessage
 
 
 class ProviderHelperOpenAI(ProviderHelper):

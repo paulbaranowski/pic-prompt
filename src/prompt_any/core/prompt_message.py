@@ -2,17 +2,8 @@
 Core message types and classes for prompt building
 """
 
-from enum import Enum
 from typing import Union, Dict, Any
-
-
-class MessageType(Enum):
-    """Types of messages that can be included in a prompt"""
-    SYSTEM = "system"
-    USER = "user"
-    ASSISTANT = "assistant"
-    IMAGE = "image"
-    FUNCTION = "function"
+from prompt_any.core.message_type import MessageType
 
 
 class PromptMessage:

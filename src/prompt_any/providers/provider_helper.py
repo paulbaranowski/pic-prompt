@@ -5,8 +5,9 @@ Base provider helper interface for handling prompt formatting and provider-speci
 from abc import ABC, abstractmethod
 from typing import List, Union
 
-from prompt_any.core.config import PromptConfig, ImageConfig
-from prompt_any.core.messages import PromptMessage
+from prompt_any.core.image_config import ImageConfig
+from prompt_any.core.prompt_config import PromptConfig
+from prompt_any.core.prompt_message import PromptMessage
 
 
 class ProviderHelper(ABC):

@@ -4,7 +4,7 @@ LocalFileSource - Loads images from the local filesystem.
 
 import os
 import asyncio
-from prompt_any.images.sources.base import ImageSource
+from prompt_any.images.sources.image_source import ImageSource
 from prompt_any.images.errors import ImageSourceError  # Ensure this error class exists in errors.py
 
 

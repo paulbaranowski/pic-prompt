@@ -4,10 +4,10 @@ Factory class for creating ProviderHelper instances.
 
 from typing import Dict, List, Type
 
-from prompt_any.providers.base import ProviderHelper
-from prompt_any.providers.openai import ProviderHelperOpenAI
-from prompt_any.providers.anthropic import ProviderHelperAnthropic
-from prompt_any.providers.gemini import ProviderHelperGemini
+from prompt_any.providers.provider_helper import ProviderHelper
+from prompt_any.providers.provider_helper_openai import ProviderHelperOpenAI
+from prompt_any.providers.provider_helper_anthropic import ProviderHelperAnthropic
+from prompt_any.providers.provider_helper_gemini import ProviderHelperGemini
 from prompt_any.core.errors import ProviderError
 
 
