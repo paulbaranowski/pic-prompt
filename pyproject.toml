@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "prompt-any"
+version = "0.1.0"
+description = "A library for building prompts for various LLM providers"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+authors = [
+    { name = "Your Name", email = "your.email@example.com" }
+]
+dependencies = [
+    "aiohttp>=3.8.0",
+    "requests>=2.28.0",
+    "boto3>=1.26.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.20.0",
+    "pytest-cov>=4.0.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/prompt_any"]

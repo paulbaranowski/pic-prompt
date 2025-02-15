@@ -1,0 +1,47 @@
++ prompt-any/
++ ├── pyproject.toml      # Already created
++ ├── README.md          # Project overview and usage
++ ├── LICENSE           # MIT license
++ ├── src/
++ │   └── prompt_any/    # Note underscore in package name
++ │       ├── __init__.py              # Main package exports
++ │       ├── core/
++ │       │   ├── __init__.py
++ │       │   ├── messages.py          # PromptMessage, MessageType
++ │       │   ├── config.py            # PromptConfig, ImageConfig
++ │       │   └── errors.py            # All error classes
++ │       ├── providers/
++ │       │   ├── __init__.py
++ │       │   ├── base.py              # ProviderHelper base class
++ │       │   ├── factory.py           # ProviderHelperFactory
++ │       │   ├── openai.py            # OpenAI implementation
++ │       │   ├── anthropic.py         # Anthropic implementation
++ │       │   └── gemini.py            # Gemini implementation
++ │       ├── images/
++ │       │   ├── __init__.py
++ │       │   ├── handler.py           # ImageHandler
++ │       │   ├── sources/
++ │       │   │   ├── __init__.py
++ │       │   │   ├── base.py          # ImageSource base class
++ │       │   │   ├── local.py         # LocalFileSource
++ │       │   │   ├── http.py          # HttpSource
++ │       │   │   └── s3.py            # S3Source
++ │       │   └── errors.py            # Image-specific errors
++ │       └── builder/
++ │           ├── __init__.py
++ │           ├── base.py              # PromptBuilder
++ │           └── async_builder.py     # AsyncPromptBuilder
++ └── tests/
++     ├── __init__.py
++     ├── conftest.py                  # pytest configuration
++     ├── test_builder.py
++     ├── test_providers/
++     │   ├── __init__.py
++     │   ├── test_openai.py
++     │   ├── test_anthropic.py
++     │   └── test_gemini.py
++     └── test_images/
++         ├── __init__.py
++         ├── test_handler.py
++         └── test_sources.py
+- src/prompt_builder/    # Remove old directory

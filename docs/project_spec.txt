@@ -1,0 +1,377 @@
+This is a python library to build a single prompt and output the JSON format for any LLMS. 
+
+# Core Message Classes
+
+MessageType (Enum):
+    SYSTEM = "system"
+    USER = "user"
+    ASSISTANT = "assistant"
+    IMAGE = "image"
+    FUNCTION = "function"
+
+# Image Handling Classes
+
+class ImageSource(ABC):
+    """Interface for different image sources (local, http, s3, etc)"""
+    @abstractmethod
+    def get_image(self, path: str) -> bytes:
+        """Retrieve image bytes from source synchronously"""
+        pass
+    
+    @abstractmethod
+    async def get_image_async(self, path: str) -> bytes:
+        """Retrieve image bytes from source asynchronously"""
+        pass
+    
+    @abstractmethod 
+    def can_handle(self, path: str) -> bool:
+        """Check if this source can handle the given path"""
+        pass
+
+class LocalFileSource(ImageSource):
+    """Loads images from local filesystem"""
+    def get_image(self, path: str) -> bytes:
+        """Read image file from disk synchronously"""
+        try:
+            with open(path, 'rb') as f:
+                return f.read()
+        except IOError as e:
+            raise ImageSourceError(f"Failed to read {path}: {e}")
+            
+    async def get_image_async(self, path: str) -> bytes:
+        """Read image file from disk asynchronously"""
+        try:
+            return await asyncio.to_thread(self.get_image, path)
+        except IOError as e:
+            raise ImageSourceError(f"Failed to read {path}: {e}")
+
+class HttpSource(ImageSource):
+    """Loads images from HTTP(S) URLs"""
+    def __init__(self, http_client=None, timeout: int = 30):
+        self.http_client = http_client or aiohttp.ClientSession()
+        self.timeout = timeout
+    
+    def get_image(self, url: str) -> bytes:
+        """Download image synchronously using requests"""
+        try:
+            response = requests.get(url, timeout=self.timeout)
+            if response.status_code != 200:
+                raise ImageSourceError(f"HTTP {response.status_code}: {url}")
+            return response.content
+        except Exception as e:
+            raise ImageSourceError(f"Failed to download {url}: {e}")
+            
+    async def get_image_async(self, url: str) -> bytes:
+        """Download image from URL asynchronously"""
+        try:
+            async with self.http_client.get(url, timeout=self.timeout) as response:
+                if response.status != 200:
+                    raise ImageSourceError(f"HTTP {response.status}: {url}")
+                return await response.read()
+        except Exception as e:
+            raise ImageSourceError(f"Failed to download {url}: {e}")
+            
+    def can_handle(self, path: str) -> bool:
+        return path.startswith(('http://', 'https://'))
+
+class S3Source(ImageSource):
+    """Loads images from S3"""
+    def __init__(self, s3_client, timeout: int = 30):
+        self.s3_client = s3_client
+        self.timeout = timeout
+    
+    def get_image(self, s3_uri: str) -> bytes:
+        """Download image from S3 synchronously"""
+        try:
+            bucket, key = self._parse_s3_uri(s3_uri)
+            response = self.s3_client.get_object(
+                Bucket=bucket,
+                Key=key
+            )
+            return response['Body'].read()
+        except Exception as e:
+            raise ImageSourceError(f"Failed to download {s3_uri}: {e}")
+    
+    async def get_image_async(self, s3_uri: str) -> bytes:
+        """Download image from S3 asynchronously"""
+        try:
+            bucket, key = self._parse_s3_uri(s3_uri)
+            response = await self.s3_client.get_object(
+                Bucket=bucket,
+                Key=key
+            )
+            return await response['Body'].read()
+        except Exception as e:
+            raise ImageSourceError(f"Failed to download {s3_uri}: {e}")
+        
+    def can_handle(self, path: str) -> bool:
+        return path.startswith('s3://')
+        
+    def _parse_s3_uri(self, uri: str) -> Tuple[str, str]:
+        """Parse s3://bucket/key into (bucket, key)"""
+        parts = uri.replace('s3://', '').split('/', 1)
+        if len(parts) != 2:
+            raise ImageSourceError(f"Invalid S3 URI: {uri}")
+        return parts[0], parts[1]
+
+class ImageSourceError(Exception):
+    """Base exception for image source errors"""
+    pass
+
+class ImageHandler:
+    """Main class for handling image operations"""
+    + process_image(path: str, provider_helper: ProviderHelper) -> Union[str, bytes]
+    + async process_image_async(path: str, provider_helper: ProviderHelper) -> Union[str, bytes]
+    + register_source(protocol: str, source: ImageSource)
+
+class PromptMessage:
+    """A message in the prompt"""
+    def __init__(
+        self,
+        content: Union[str, bytes],
+        type: MessageType,
+        role: str,
+        **kwargs: Any  # For additional fields like function arguments or image data
+    ):
+        self._content = content
+        self._type = type
+        self._role = role
+        self._additional_data = kwargs
+    
+    # Getters
+    + @property content() -> Union[str, bytes]
+    + @property type() -> MessageType  
+    + @property role() -> str
+    + @property additional_data() -> Dict[str, Any]
+    
+    # Setters
+    + @content.setter content(value: Union[str, bytes])
+    + @type.setter type(value: MessageType)
+    + @role.setter role(value: str) 
+    + @additional_data.setter additional_data(value: Dict[str, Any])
+    
+    def __repr__(self) -> str:
+        return f"Message(type={self.type}, role={self.role}, content={self.content})"
+
+# Model Configuration
+
+class ImageConfig:
+    """Configuration for model-specific image requirements"""
+    - _requires_base64: bool
+    - _max_size: int
+    - _supported_formats: List[str]
+    + validate(image_data: Union[str, bytes]) -> bool
+    + to_dict() -> Dict[str, Any]
+    + from_dict(data: Dict[str, Any]) -> 'ImageConfig'
+    
+    # Getters
+    + @property requires_base64() -> bool
+    + @property max_size() -> int
+    + @property supported_formats() -> List[str]
+
+    def __init__(
+        self,
+        requires_base64: bool = False,
+        max_size: int = 10_000_000,
+        supported_formats: List[str] = ["png", "jpeg"]
+    ):
+        self._requires_base64 = requires_base64
+        self._max_size = max_size
+        self._supported_formats = supported_formats
+
+# Formatter Classes
+
+class ProviderHelper(ABC):
+    """Handles both prompt formatting and image requirements for a specific model"""
+    - _image_config: ImageConfig  # Make private
+    + format_prompt(messages: List[PromptMessage], config: PromptConfig) -> str
+    + get_image_config() -> ImageConfig
+    + encode_image(image_bytes: bytes) -> Union[str, bytes]  # Add encoding here
+
+class ProviderHelperFactory:
+    MODEL_OPENAI = "openai"
+    MODEL_ANTHROPIC = "anthropic" 
+    MODEL_GEMINI = "gemini"
+
+    - _helpers: Dict[str, Type[ProviderHelper]]
+    - _default_helpers: Dict[str, Type[ProviderHelper]] = {
+        MODEL_OPENAI: ProviderHelperOpenAI,
+        MODEL_ANTHROPIC: ProviderHelperAnthropic,
+        MODEL_GEMINI: ProviderHelperGemini
+    }
+
+    def __init__(self):
+        """Initialize with default provider helpers"""
+        self._helpers = self._default_helpers.copy()
+
+    + register_helper(name: str, helper: Type[ProviderHelper]) -> None
+    + get_helper(model: str = MODEL_OPENAI) -> ProviderHelper
+    + list_supported_models() -> List[str]
+    @classmethod
+    def get_supported_providers(cls) -> List[str]:
+        """Get list of supported providers"""
+        return list(cls._default_helpers.keys())
+
+class ProviderHelperOpenAI(ProviderHelper):
+    """
+    image_config = {
+        "requires_base64": True,
+        "max_size": 20_000_000,  # 20MB
+        "supported_formats": ["png", "jpeg", "gif"]
+    }
+    """
+    - image_config: ImageConfig = ImageConfig(
+        requires_base64=True,
+        max_size=20_000_000,  # 20MB
+        supported_formats=["png", "jpeg", "gif"]
+    )
+    + format_prompt(messages: List[PromptMessage], config: PromptConfig) -> str
+
+class ProviderHelperAnthropic(ProviderHelper):
+    """
+    image_config = {
+        "requires_base64": True,
+        "max_size": 40_000_000,  # 40MB
+        "supported_formats": ["png", "jpeg"]
+    }
+    """
+    - image_config: ImageConfig = ImageConfig(
+        requires_base64=True,
+        max_size=40_000_000,  # 40MB
+        supported_formats=["png", "jpeg"]
+    )
+    + format_prompt(messages: List[PromptMessage], config: PromptConfig) -> str
+
+class ProviderHelperGemini(ProviderHelper):
+    """
+    image_config = {
+        "requires_base64": False,
+        "max_size": 10_000_000,  # 10MB
+        "supported_formats": ["png", "jpeg", "webp", "heic"]
+    }
+    """
+    - image_config: ImageConfig = ImageConfig(
+        requires_base64=False,
+        max_size=10_000_000,  # 10MB
+        supported_formats=["png", "jpeg", "webp", "heic"]
+    )
+    + format_prompt(messages: List[PromptMessage], config: PromptConfig) -> str
+
+# Main Builder Class
+
+class PromptConfig:
+    """Configuration for prompt generation"""
+    - _provider: str
+    - _model: str
+    - _temperature: float  
+    - _max_tokens: Optional[int]
+    - _top_p: Optional[float]
+    - _json_response: bool
+    - _json_schema: Optional[Dict[str, Any]]
+    - _is_batch: bool
+    - _method: str
+    - _url: str
+
+    + __init__(
+        provider: str = "openai",
+        model: str = "gpt-3.5-turbo",
+        temperature: float = 0.7,
+        max_tokens: Optional[int] = None,
+        top_p: Optional[float] = None,
+        json_response: bool = False,
+        json_schema: Optional[Dict[str, Any]] = None,
+        is_batch: bool = False,
+        method: str = "POST",
+        url: str = ""
+    )
+
+    # Getters
+    + @property provider() -> str
+    + @property model() -> str
+    + @property temperature() -> float
+    + @property max_tokens() -> Optional[int] 
+    + @property top_p() -> Optional[float]
+    + @property json_response() -> bool
+    + @property json_schema() -> Optional[Dict[str, Any]]
+    + @property is_batch() -> bool
+    + @property method() -> str
+    + @property url() -> str
+
+    # Setters
+    + @provider.setter provider(value: str)
+    + @model.setter model(value: str)
+    + @temperature.setter temperature(value: float)
+    + @max_tokens.setter max_tokens(value: Optional[int])
+    + @top_p.setter top_p(value: Optional[float])
+    + @json_response.setter json_response(value: bool)
+    + @json_schema.setter json_schema(value: Optional[Dict[str, Any]])
+    + @is_batch.setter is_batch(value: bool)
+    + @method.setter method(value: str)
+    + @url.setter url(value: str)
+    
+    + @classmethod default() -> 'PromptConfig'
+    + to_dict() -> Dict[str, Any]
+    + @classmethod from_dict(data: Dict[str, Any]) -> 'PromptConfig'
+
+class PromptBuilder:
+    - messages: List[PromptMessage]
+    - configs: Dict[str, PromptConfig]  # Map of provider -> config
+    - provider_helper_factory: ProviderHelperFactory
+    - image_handler: ImageHandler
+    + __init__(
+        configs: Optional[Dict[str, PromptConfig]] = None
+    ):
+        self.configs = configs or {"openai": PromptConfig.default()}
+        self.default_provider = list(self.configs.keys())[0] 
+        self.messages = []
+        self.provider_helper_factory = ProviderHelperFactory()
+        self.image_handler = ImageHandler()
+
+    # Message Methods
+    + add_system_message(message: str) -> None
+    + add_user_message(message: str) -> None
+    + add_assistant_message(message: str) -> None
+    + add_image_message(image_path: str) -> None
+    + add_image_messages(image_paths: List[str]) -> None
+    + add_function_message(name: str, arguments: dict)
+    
+    # Config Methods
+    + add_config(provider: str, config: PromptConfig) -> None
+    + get_config(provider: str) -> PromptConfig
+    + remove_config(provider: str) -> None
+    + has_config(provider: str) -> bool
+    
+    # Utility Methods
+    + get_prompt_for(provider: str) -> str  # Build and return the prompt using provider's config
+    + clear() - clear the messages and reset the builder
+    + __repr__()
+
+class AsyncPromptBuilder(PromptBuilder):
+    """Async version of PromptBuilder that handles async image operations"""
+    
+    async def add_image_message(self, image_path: str) -> None
+    async def add_image_messages(self, image_paths: List[str]) -> None
+    async def get_prompt_for(self, provider: str) -> str
+
+class PromptBuilderError(Exception):
+    """Base exception for PromptBuilder errors"""
+    pass
+
+class ConfigurationError(PromptBuilderError):
+    """Error in configuration"""
+    pass
+
+class ProviderError(PromptBuilderError):
+    """Error with provider operations"""
+    pass
+
+class ImageProcessingError(PromptBuilderError):
+    pass
+
+class ProviderFormatError(PromptBuilderError):
+    pass
+
+class ValidationError(PromptBuilderError):
+    pass
+
+ 

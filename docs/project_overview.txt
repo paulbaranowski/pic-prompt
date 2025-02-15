@@ -1,0 +1,8 @@
+This is a python library to build a single prompt and output the JSON format for any LLMS. 
+It is useful when you have enselmble of LLMS and you want to use the same prompt for all of them,
+or if you are testing a new prompt and you want to see which LLMS respond best to it. 
+
+The library is designed to be extensible and allow for easy addition of new LLMS and new message types. 
+
+The library is also designed to be async friendly. 
+
