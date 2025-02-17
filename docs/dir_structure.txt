@@ -21,18 +21,18 @@
 + │       │   └── provider_helper_gemini.py    # Gemini implementation
 + │       ├── images/
 + │       │   ├── __init__.py
-+ │       │   ├── handler.py           # ImageHandler
++ │       │   ├── image_handler.py     # ImageHandler
 + │       │   ├── sources/
 + │       │   │   ├── __init__.py
-+ │       │   │   ├── base.py          # ImageSource base class
-+ │       │   │   ├── local.py         # LocalFileSource
-+ │       │   │   ├── http.py          # HttpSource
-+ │       │   │   └── s3.py            # S3Source
-+ │       │   └── errors.py            # Image-specific errors
++ │       │   │   ├── image_source.py  # ImageSource base class
++ │       │   │   ├── local_source.py  # LocalFileSource
++ │       │   │   ├── http_source.py   # HttpSource
++ │       │   │   └── s3_source.py     # S3Source
++ │       │   └── image_errors.py      # Image-specific errors
 + │       └── builder/
 + │           ├── __init__.py
-+ │           ├── base.py              # PromptBuilder
-+ │           └── async_builder.py     # AsyncPromptBuilder
++ │           ├── prompt_builder.py    # PromptBuilder
++ │           └── async_prompt_builder.py  # AsyncPromptBuilder
 + └── tests/
 +     ├── __init__.py
 +     ├── conftest.py                  # pytest configuration

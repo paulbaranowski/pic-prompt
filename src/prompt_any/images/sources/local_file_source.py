@@ -49,8 +49,8 @@ class LocalFileSource(ImageSource):
     def can_handle(self, path: str) -> bool:
         """Check if this source can handle the given path.
 
-        For local files, we assume any path that does not start with a remote URI (http://, https://, s3://)
-        is handled by this source.
+        For local files, we assume any path that does not contain a URI scheme
+        (i.e. does not match the pattern <prefix>://).
 
         Args:
             path (str): The path or URI to check.
@@ -58,4 +58,4 @@ class LocalFileSource(ImageSource):
         Returns:
             bool: True if the file is a local file, False otherwise.
         """
-        return not (path.startswith("http://") or path.startswith("https://") or path.startswith("s3://")) 
+        return "://" not in path

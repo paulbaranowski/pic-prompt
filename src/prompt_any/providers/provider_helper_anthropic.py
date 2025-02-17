@@ -27,7 +27,7 @@ class ProviderHelperAnthropic(ProviderHelper):
         """
         return ImageConfig(
             requires_base64=True,
-            max_size=40_000_000,
+            max_size=5_000_000,
             supported_formats=["png", "jpeg"]
         )
 

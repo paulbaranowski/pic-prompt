@@ -27,7 +27,7 @@ class ProviderHelperOpenAI(ProviderHelper):
         Return OpenAI's default image configuration.
         """
         return ImageConfig(
-            requires_base64=True,
+            requires_base64=False,
             max_size=20_000_000,
             supported_formats=["png", "jpeg", "gif"]
         )

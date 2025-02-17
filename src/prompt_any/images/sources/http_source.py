@@ -16,7 +16,8 @@ class HttpSource(ImageSource):
     """
 
     def __init__(self, async_http_client: aiohttp.ClientSession = None, timeout: int = 30) -> None:
-        self.async_http_client = async_http_client or aiohttp.ClientSession()
+        # Lazy initialization: do not create a ClientSession unless async calls are made
+        self.async_http_client = async_http_client
         self.timeout = timeout
 
     def get_image(self, url: str) -> bytes:
@@ -53,6 +54,10 @@ class HttpSource(ImageSource):
         Raises:
             ImageSourceError: If the image cannot be downloaded.
         """
+        # Lazy initialization of async_http_client
+        if self.async_http_client is None:
+            self.async_http_client = aiohttp.ClientSession()
+
         try:
             async with self.async_http_client.get(url, timeout=self.timeout) as response:
                 if response.status != 200:

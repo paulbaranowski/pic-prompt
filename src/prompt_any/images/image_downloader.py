@@ -1,6 +1,8 @@
 """
-Main class for handling image operations.
+Image handler module.
 """
+
+import boto3
 
 from typing import Dict, Union, Optional
 from prompt_any.images.sources.image_source import ImageSource
@@ -11,7 +13,7 @@ from prompt_any.images.sources.http_source import HttpSource
 from prompt_any.images.sources.s3_source import S3Source
 
 
-class ImageHandler:
+class ImageDownloader:
     """Main class for handling image operations."""
 
     def __init__(self, s3_client: Optional[boto3.client] = None) -> None:
