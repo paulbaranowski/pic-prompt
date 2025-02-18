@@ -15,4 +15,4 @@ from prompt_any.images.errors import ImageSourceError
 __all__ = [
     "ImageDownloader",
     "ImageSourceError",
-] 
+]

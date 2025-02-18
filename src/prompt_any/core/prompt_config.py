@@ -19,7 +19,7 @@ class PromptConfig:
         json_schema: Optional[Dict[str, Any]] = None,
         is_batch: bool = False,
         method: str = "POST",
-        url: str = ""
+        url: str = "",
     ):
         self._provider = provider
         self._model = model
@@ -133,7 +133,7 @@ class PromptConfig:
         self._url = value
 
     @classmethod
-    def default(cls) -> 'PromptConfig':
+    def default(cls) -> "PromptConfig":
         """Create a default configuration"""
         return cls()
 
@@ -149,10 +149,10 @@ class PromptConfig:
             "json_schema": self._json_schema,
             "is_batch": self._is_batch,
             "method": self._method,
-            "url": self._url
+            "url": self._url,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'PromptConfig':
+    def from_dict(cls, data: Dict[str, Any]) -> "PromptConfig":
         """Create config from dictionary"""
-        return cls(**data) 
+        return cls(**data)

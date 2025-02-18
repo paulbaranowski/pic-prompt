@@ -2,10 +2,12 @@
 LocalFileSource - Loads images from the local filesystem.
 """
 
-import os
 import asyncio
+import mimetypes
 from prompt_any.images.sources.image_source import ImageSource
-from prompt_any.images.errors import ImageSourceError  # Ensure this error class exists in errors.py
+from prompt_any.images.errors import (
+    ImageSourceError,
+)  # Ensure this error class exists in errors.py
 
 
 class LocalFileSource(ImageSource):
@@ -59,3 +61,9 @@ class LocalFileSource(ImageSource):
             bool: True if the file is a local file, False otherwise.
         """
         return "://" not in path
+
+    def get_media_type(self, path: str) -> str:
+        """
+        Get the media type of the image.
+        """
+        return mimetypes.guess_type(path)[0]

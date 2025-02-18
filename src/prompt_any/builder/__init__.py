@@ -8,4 +8,4 @@ from prompt_any.builder.async_prompt_builder import AsyncPromptBuilder
 __all__ = [
     "PromptBuilder",
     "AsyncPromptBuilder",
-] 
+]

@@ -10,6 +10,7 @@ class DummyS3ClientSuccess:
         class DummyBody:
             def read(self):
                 return b"test image data"
+
         return {"Body": DummyBody()}
 
 
@@ -23,6 +24,7 @@ class DummyS3ClientFailure:
 class DummyAsyncS3Response:
     def __init__(self, content):
         self._content = content
+
     async def read(self):
         return self._content
 

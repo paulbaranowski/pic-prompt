@@ -2,78 +2,79 @@
 Provider helper implementation for Anthropic.
 """
 
-import base64
-from typing import List, Union
+import json
+from typing import List, Dict
 
 from prompt_any.providers.provider_helper import ProviderHelper
 from prompt_any.core.image_config import ImageConfig
 from prompt_any.core.prompt_config import PromptConfig
 from prompt_any.core.prompt_message import PromptMessage
+from prompt_any.core.prompt_content import PromptContent
+from prompt_any.images.image_data import ImageData
 
 
 class ProviderHelperAnthropic(ProviderHelper):
     """
     ProviderHelper implementation for Anthropic.
-    
-    Default image configuration:
-        - requires_base64: True
-        - max_size: 40,000,000 (40MB)
-        - supported_formats: ["png", "jpeg"]
     """
 
-    def _default_image_config(self) -> ImageConfig:
+    def __init__(self) -> None:
+        super().__init__()
+
+    def default_image_config(self) -> ImageConfig:
         """
         Return Anthropic's default image configuration.
         """
         return ImageConfig(
             requires_base64=True,
             max_size=5_000_000,
-            supported_formats=["png", "jpeg"]
+            supported_formats=["png", "jpeg", "gif", "webp"],
+            needs_download=True,
         )
 
-    def format_prompt(self, messages: List[PromptMessage], config: PromptConfig) -> str:
-        """
-        Format the prompt for the Anthropic provider as a plain text conversation.
-        
-        Each message is prefixed based on its role:
-            - "Human:" for system and user messages,
-            - "Assistant:" for assistant messages,
-            - "Function:" for function messages.
-            
-        Messages are separated by a blank line.
-        
-        Args:
-            messages (List[PromptMessage]): The list of prompt messages.
-            config (PromptConfig): The configuration settings (not explicitly used here).
-        
-        Returns:
-            str: The formatted prompt string.
-        """
-        lines = []
-        for message in messages:
-            role_lower = message.role.lower().strip()
-            if role_lower == "assistant":
-                prefix = "Assistant:"
-            elif role_lower == "function":
-                prefix = "Function:"
-            else:
-                prefix = "Human:"
-            lines.append(f"{prefix} {message.content}")
-        return "\n\n".join(lines)
+    def format_prompt(
+        self,
+        messages: List[PromptMessage],
+        prompt_config: PromptConfig,
+        all_image_data: Dict[str, bytes],
+    ) -> str:
+        self._prompt_config = prompt_config
+        self._all_image_data = all_image_data
+        prompt_messages = self.format_messages(messages)
+        prompt = {
+            "messages": prompt_messages,
+            "model": prompt_config.model,
+            "temperature": prompt_config.temperature,
+            "max_tokens": prompt_config.max_tokens,
+            "top_p": prompt_config.top_p,
+        }
 
-    def encode_image(self, image_bytes: bytes) -> Union[str, bytes]:
+        if prompt_config.json_response and prompt_config.json_schema is not None:
+            prompt["json_schema"] = prompt_config.json_schema
+
+        return json.dumps(prompt)
+
+    def format_content_text(self, content: PromptContent) -> str:
         """
-        Encode image bytes according to Anthropic's requirements.
-        
-        Since Anthropic requires base64 encoding, this method returns
-        a base64-encoded string of the image bytes.
-        
-        Args:
-            image_bytes (bytes): The raw image data.
-        
-        Returns:
-            Union[str, bytes]: The base64-encoded image data (string).
+        Format a text content based on Anthropic's requirements.
         """
-        if self.get_image_config().requires_base64:
-            return base64.b64encode(image_bytes).decode("utf-8")
-        return image_bytes 
+        return {"type": "text", "text": content.data}
+
+    def format_content_image(
+        self, content: PromptContent, all_image_data: Dict[str, ImageData]
+    ) -> str:
+        """
+        Format an image content based on Anthropic's requirements.
+
+        Returns a dictionary containing the image data formatted according to Anthropic's API requirements.
+        """
+        # look up the image data in all_image_data
+        image_data = all_image_data[content.data]
+        return {
+            "type": "image",
+            "source": {
+                "type": "base64",
+                "media_type": image_data.media_type,
+                "data": image_data.encoded_data,
+            },
+        }

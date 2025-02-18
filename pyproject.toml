@@ -33,3 +33,8 @@ testpaths = ["tests"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/prompt_any"]
+
+[dependency-groups]
+dev = [
+    "black>=24.8.0",
+]

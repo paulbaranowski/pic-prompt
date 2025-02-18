@@ -4,6 +4,7 @@ Loads images from HTTP(S) URLs.
 
 import requests
 import aiohttp
+import mimetypes
 from prompt_any.images.sources.image_source import ImageSource
 from prompt_any.images.errors import ImageSourceError
 
@@ -15,7 +16,9 @@ class HttpSource(ImageSource):
     If no HTTP client is provided, a default aiohttp.ClientSession is created.
     """
 
-    def __init__(self, async_http_client: aiohttp.ClientSession = None, timeout: int = 30) -> None:
+    def __init__(
+        self, async_http_client: aiohttp.ClientSession = None, timeout: int = 30
+    ) -> None:
         # Lazy initialization: do not create a ClientSession unless async calls are made
         self.async_http_client = async_http_client
         self.timeout = timeout
@@ -59,7 +62,9 @@ class HttpSource(ImageSource):
             self.async_http_client = aiohttp.ClientSession()
 
         try:
-            async with self.async_http_client.get(url, timeout=self.timeout) as response:
+            async with self.async_http_client.get(
+                url, timeout=self.timeout
+            ) as response:
                 if response.status != 200:
                     raise ImageSourceError(f"HTTP {response.status}: {url}")
                 return await response.read()
@@ -76,4 +81,10 @@ class HttpSource(ImageSource):
         Returns:
             bool: True if the URL starts with 'http://' or 'https://', otherwise False.
         """
-        return path.startswith("http://") or path.startswith("https://") 
+        return path.startswith("http://") or path.startswith("https://")
+
+    def get_media_type(self, path: str) -> str:
+        """
+        Get the media type of the image.
+        """
+        return mimetypes.guess_type(path)[0]

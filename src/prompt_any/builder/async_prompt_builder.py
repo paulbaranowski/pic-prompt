@@ -28,7 +28,9 @@ class AsyncPromptBuilder(PromptBuilder):
         # Use the default provider's configuration for processing the image.
         config = self.get_config(self.default_provider)
         helper = self.provider_helper_factory.get_helper(config.provider)
-        processed_image = await self.image_handler.process_image_async(image_path, helper)
+        processed_image = await self.image_handler.process_image_async(
+            image_path, helper
+        )
         self.messages.append(
             PromptMessage(
                 content=processed_image,
@@ -59,13 +61,19 @@ class AsyncPromptBuilder(PromptBuilder):
 
         async def process_message(message: PromptMessage) -> None:
             if message.type == MessageType.IMAGE:
-                processed_image = await self.image_handler.process_image_async(message.content, helper)
+                processed_image = await self.image_handler.process_image_async(
+                    message.content, helper
+                )
                 message.content = processed_image
 
         # Process all image messages concurrently.
-        tasks = [process_message(msg) for msg in self.messages if msg.type == MessageType.IMAGE]
+        tasks = [
+            process_message(msg)
+            for msg in self.messages
+            if msg.type == MessageType.IMAGE
+        ]
         if tasks:
             await asyncio.gather(*tasks)
 
         # Format and return the prompt.
-        return helper.format_prompt(self.messages, config) 
+        return helper.format_prompt(self.messages, config)

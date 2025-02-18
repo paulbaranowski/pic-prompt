@@ -48,4 +48,11 @@ class ImageSource(ABC):
         Returns:
             bool: True if the source can handle the image, False otherwise.
         """
-        pass 
+        pass
+
+    @abstractmethod
+    def get_media_type(self, path: str) -> str:
+        """
+        Get the media type of the image.
+        """
+        pass

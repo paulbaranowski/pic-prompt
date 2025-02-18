@@ -7,10 +7,10 @@ import boto3
 from typing import Dict, Union, Optional
 from prompt_any.images.sources.image_source import ImageSource
 from prompt_any.core.errors import ImageProcessingError
-from prompt_any.providers.provider_helper import ProviderHelper
 from prompt_any.images.sources.local_file_source import LocalFileSource
 from prompt_any.images.sources.http_source import HttpSource
 from prompt_any.images.sources.s3_source import S3Source
+from prompt_any.images.image_data import ImageData
 
 
 class ImageDownloader:
@@ -57,9 +57,11 @@ class ImageDownloader:
         for source in self.sources.values():
             if source.can_handle(path):
                 return source
-        raise ImageProcessingError(f"No registered image source can handle path: {path}")
+        raise ImageProcessingError(
+            f"No registered image source can handle path: {path}"
+        )
 
-    def process_image(self, path: str, provider_helper: ProviderHelper) -> Union[str, bytes]:
+    def download(self, path: str) -> ImageData:
         """
         Process an image synchronously.
 
@@ -75,12 +77,13 @@ class ImageDownloader:
         """
         source = self._get_source_for_path(path)
         try:
-            image_data = source.get_image(path)
-            return provider_helper.encode_image(image_data)
+            binary_data = source.get_image(path)
+            media_type = source.get_media_type(path)
+            return ImageData(binary_data, media_type)
         except Exception as e:
             raise ImageProcessingError(f"Error processing image '{path}': {e}")
 
-    async def process_image_async(self, path: str, provider_helper: ProviderHelper) -> Union[str, bytes]:
+    async def download_async(self, path: str) -> ImageData:
         """
         Process an image asynchronously.
 
@@ -96,7 +99,8 @@ class ImageDownloader:
         """
         source = self._get_source_for_path(path)
         try:
-            image_data = await source.get_image_async(path)
-            return provider_helper.encode_image(image_data)
+            binary_data = await source.get_image_async(path)
+            media_type = source.get_media_type(path)
+            return ImageData(binary_data, media_type)
         except Exception as e:
-            raise ImageProcessingError(f"Error processing image '{path}': {e}") 
+            raise ImageProcessingError(f"Error processing image '{path}': {e}")

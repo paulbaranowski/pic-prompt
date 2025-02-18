@@ -62,4 +62,4 @@ class ProviderHelperFactory:
     @classmethod
     def get_supported_providers(cls) -> List[str]:
         """Get list of supported providers based on default helpers."""
-        return list(cls._default_helpers.keys()) 
+        return list(cls._default_helpers.keys())

@@ -3,7 +3,7 @@ Loads images from S3.
 """
 
 from typing import Tuple
-
+import mimetypes
 from prompt_any.images.sources.image_source import ImageSource
 from prompt_any.images.errors import ImageSourceError
 
@@ -38,7 +38,7 @@ class S3Source(ImageSource):
         try:
             bucket, key = self._parse_s3_uri(s3_uri)
             response = self.s3_client.get_object(Bucket=bucket, Key=key)
-            return response['Body'].read()
+            return response["Body"].read()
         except Exception as e:
             raise ImageSourceError(f"Failed to download {s3_uri}: {e}")
 
@@ -58,7 +58,7 @@ class S3Source(ImageSource):
         try:
             bucket, key = self._parse_s3_uri(s3_uri)
             response = await self.s3_client.get_object(Bucket=bucket, Key=key)
-            return await response['Body'].read()
+            return await response["Body"].read()
         except Exception as e:
             raise ImageSourceError(f"Failed to download {s3_uri}: {e}")
 
@@ -90,4 +90,10 @@ class S3Source(ImageSource):
         parts = uri.replace("s3://", "").split("/", 1)
         if len(parts) != 2:
             raise ImageSourceError(f"Invalid S3 URI: {uri}")
-        return parts[0], parts[1] 
+        return parts[0], parts[1]
+
+    def get_media_type(self, path: str) -> str:
+        """
+        Get the media type of the image.
+        """
+        return mimetypes.guess_type(path)[0]

@@ -27,4 +27,4 @@ __all__ = [
     "ConfigurationError",
     "ProviderError",
     "ImageProcessingError",
-] 
+]

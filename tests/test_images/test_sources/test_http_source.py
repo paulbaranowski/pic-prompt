@@ -6,6 +6,7 @@ import os
 
 REAL_IMAGE_URL = "https://hstwhmjryocigvbffybk.supabase.co/storage/v1/object/public/promptfoo_images/all-pro-dadfs.PNG"
 
+
 class DummyResponse:
     def __init__(self, status_code, content):
         self.status_code = status_code
@@ -59,10 +60,11 @@ def test_can_handle(http_source):
     assert http_source.can_handle("https://example.com") is True
     assert http_source.can_handle("ftp://example.com") is False
 
+
 @pytest.mark.integration
 @pytest.mark.skipif(
     not os.getenv("RUN_INTEGRATION_TESTS"),
-    reason="Integration tests are disabled. Set RUN_INTEGRATION_TESTS=1 to enable."
+    reason="Integration tests are disabled. Set RUN_INTEGRATION_TESTS=1 to enable.",
 )
 def test_get_real_image_sync():
     http_source = HttpSource()
@@ -72,6 +74,7 @@ def test_get_real_image_sync():
 
 
 # Async tests
+
 
 class DummyAiohttpResponse:
     def __init__(self, status, content):
@@ -111,11 +114,12 @@ async def test_get_image_async_http_error():
         await http_source.get_image_async("http://example.com/error")
     assert "HTTP 404" in str(err.value)
 
+
 @pytest.mark.asyncio
 @pytest.mark.integration
 @pytest.mark.skipif(
     not os.getenv("RUN_INTEGRATION_TESTS"),
-    reason="Integration tests are disabled. Set RUN_INTEGRATION_TESTS=1 to enable."
+    reason="Integration tests are disabled. Set RUN_INTEGRATION_TESTS=1 to enable.",
 )
 async def test_get_real_image_async():
     http_source = HttpSource()

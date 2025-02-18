@@ -3,69 +3,119 @@ Base provider helper interface for handling prompt formatting and provider-speci
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Union
+from typing import List, Dict, Any, Union
+import base64
 
 from prompt_any.core.image_config import ImageConfig
 from prompt_any.core.prompt_config import PromptConfig
-from prompt_any.core.prompt_message import PromptMessage
+from prompt_any.core.prompt_message import PromptMessage, MessageType
+from prompt_any.core.prompt_content import PromptContent
+from prompt_any.images import ImageTransformer
+from prompt_any.images.image_data import ImageData
 
 
 class ProviderHelper(ABC):
     """
     Abstract base class that handles both prompt formatting and image requirements for a specific provider.
-    
+
     Subclasses must implement:
       - _default_image_config()
       - format_prompt()
       - encode_image()
-    
+
     The provider's image configuration can be accessed via `get_image_config()`.
     """
 
     def __init__(self) -> None:
-        self._image_config: ImageConfig = self._default_image_config()
+        self._image_config: ImageConfig = self.get_image_config()
+        self._prompt_config: PromptConfig = None
+        self._image_data: Dict[str, ImageData] = {}
 
     @abstractmethod
-    def _default_image_config(self) -> ImageConfig:
+    def get_image_config(self) -> ImageConfig:
         """
         Return the default image configuration for the provider.
-        
+
         This should be specific to the provider's API requirements.
         """
         pass
 
     @abstractmethod
-    def format_prompt(self, messages: List[PromptMessage], config: PromptConfig) -> str:
+    def format_prompt(
+        self,
+        messages: List[PromptMessage],
+        prompt_config: PromptConfig,
+        all_image_data: Dict[str, ImageData],
+    ) -> str:
         """
         Format the prompt based on the list of messages and the provided configuration.
-        
+
         Args:
             messages (List[PromptMessage]): The list of messages to include in the prompt.
             config (PromptConfig): The configuration settings for prompt generation.
-        
+
         Returns:
             str: The formatted prompt string.
         """
         pass
 
-    def get_image_config(self) -> ImageConfig:
+    @abstractmethod
+    def format_messages(
+        self, messages: List[PromptMessage], all_image_data: Dict[str, ImageData]
+    ) -> str:
         """
-        Retrieve the image configuration for this provider.
-        
-        Returns:
-            ImageConfig: The provider's image configuration.
+        Format a list of messages based on the provider's requirements.
         """
-        return self._image_config
+        pass
+
+    def format_content(
+        self, message: PromptMessage, all_image_data: Dict[str, ImageData]
+    ) -> str:
+        """
+        Format a content based on the provider's requirements.
+        """
+        formatted_content = []
+        for content in message.content:
+            if content.type == MessageType.IMAGE:
+                formatted_content.append(
+                    self.format_content_image(content, all_image_data)
+                )
+            elif content.type == MessageType.TEXT:
+                formatted_content.append(self.format_content_text(content))
+        return formatted_content
 
     @abstractmethod
-    def encode_image(self, image_bytes: bytes) -> Union[str, bytes]:
+    def format_content_image(
+        self, content: PromptContent, all_image_data: Dict[str, ImageData]
+    ) -> str:
         """
-        Encode the provided image data according to the provider's requirements.
-        
-        Args:
-            image_bytes (bytes): The raw image data.
-        
-        Returns:
-            Union[str, bytes]: The encoded image data (e.g. base64 string or raw bytes).
+        Format an image message based on the provider's requirements.
         """
-        pass 
+        pass
+
+    @abstractmethod
+    def format_content_text(self, content: PromptContent) -> str:
+        """
+        Format a text message based on the provider's requirements.
+        """
+        pass
+
+    def process_image(self, image_data: ImageData) -> ImageData:
+        """
+        Process an image based on the provider's requirements.
+        """
+        if self.get_image_config().requires_base64:
+            image_data.encoded_data = self.encode_image(image_data.binary_data)
+            if len(image_data.encoded_data) > self.get_image_config().max_size:
+                resized_image = ImageTransformer.resize(image_data.binary_data)
+                image_data.encoded_data = self.encode_image(resized_image)
+            return image_data
+        else:
+            # should never happen
+            return image_data
+
+    def encode_image(self, binary_data: bytes) -> str:
+        """
+        Encode an image.
+        """
+        return base64.b64encode(binary_data).decode("utf-8")

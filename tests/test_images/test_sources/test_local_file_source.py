@@ -44,6 +44,7 @@ async def test_get_image_async_ioerror(local_source):
     # Monkeypatch get_image to raise IOError directly to simulate an unexpected IOError
     def broken_get_image(path: str) -> bytes:
         raise IOError("Simulated IOError in get_image")
+
     local_source.get_image = broken_get_image
     with pytest.raises(ImageSourceError) as exc_info:
         await local_source.get_image_async("dummy_path")
