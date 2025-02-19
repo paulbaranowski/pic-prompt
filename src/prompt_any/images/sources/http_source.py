@@ -23,6 +23,12 @@ class HttpSource(ImageSource):
         self.async_http_client = async_http_client
         self.timeout = timeout
 
+    def get_source_type(self) -> str:
+        """
+        Get the type of the source.
+        """
+        return "http"
+
     def get_image(self, url: str) -> bytes:
         """
         Download image synchronously using requests.

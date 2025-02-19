@@ -1,7 +1,10 @@
 from typing import List, Dict, Optional
 from prompt_any.core import PromptMessage, PromptConfig
 from prompt_any.providers import ProviderHelperFactory, ProviderHelper
-from prompt_any.images import ImageDownloader, ImageTransformer
+from prompt_any.images import ImageDownloader
+from prompt_any.images.image_data import ImageData
+from prompt_any.images.image_registry import ImageRegistry
+from prompt_any.providers.provider_names import ProviderNames
 
 
 class PromptBuilder:
@@ -13,9 +16,24 @@ class PromptBuilder:
             configs if configs is not None else {"openai": PromptConfig.default()}
         )
         self.default_provider: str = list(self.configs.keys())[0]
+
+        # These are the messages that will be used to build the prompt
         self.messages: List[PromptMessage] = []
-        self.provider_helper_factory = ProviderHelperFactory()
+
+        # These are the images that will be downloaded and processed
         self.image_list = []
+
+        # This is the factory that will be used to get the provider helper
+        self.provider_helper_factory = ProviderHelperFactory()
+
+        # This is the cache of all the downloadedimage data
+        # self.all_image_data: Dict[str, ImageData] = {}
+
+        # This is the registry of all the downloaded image data
+        self.image_registry = ImageRegistry()
+
+        # This is the cache of all the prompts
+        self.prompts: Dict[str, str] = {}
 
     # Message Methods
     def add_system_message(self, message: str) -> None:
@@ -46,6 +64,8 @@ class PromptBuilder:
 
     # Config Methods
     def add_config(self, provider: str, config: PromptConfig) -> None:
+        if provider not in ProviderNames.get_all_names():
+            raise ValueError(f"Provider {provider} is not supported")
         self.configs[provider] = config
 
     def get_config(self, provider: str) -> PromptConfig:
@@ -58,38 +78,93 @@ class PromptBuilder:
     def has_config(self, provider: str) -> bool:
         return provider in self.configs
 
-    def get_image_data(self, provider_helper: ProviderHelper) -> Dict[str, bytes]:
+    def _should_download_images(self) -> bool:
+        for provider in self.configs:
+            if self.configs[provider].get_image_config().needs_download:
+                return True
+        return False
+
+    def download_image_data(self) -> ImageRegistry:
         """
-        Downloads and processes images based on provider requirements.
+        Downloads images if needed and stores them in the image registry.
 
-        Downloads images if the provider requires it, and encodes them in base64 if needed.
-        Caches the processed image data to avoid downloading the same image multiple times.
-
-        Args:
-            provider_helper (ProviderHelper): The provider helper containing image requirements
+        Only downloads images if they haven't already been downloaded and if at least one provider
+        requires downloaded images. The downloaded images are stored in the image registry for reuse.
 
         Returns:
-            Dict[str, bytes]: Dictionary mapping image paths to their processed binary data
+            ImageRegistry: The registry containing all downloaded image data
         """
-        all_image_data = {}
-        if provider_helper.get_image_config().needs_download:
-            for image in self.image_list:
-                image_data = ImageDownloader.download(image)
-                all_image_data[image] = provider_helper.process_image(image_data)
-        return all_image_data
+        if self.image_registry.num_images() == 0:
+            if self._should_download_images():
+                for image in self.image_list:
+                    image_data = ImageDownloader.download(image)
+                    self.image_registry.add_image_data(image_data)
+        return self.image_registry
 
-    # Utility Methods
-    def get_prompt_for(self, provider: str) -> str:
-        # Retrieve the configuration; if not found, use default
-        config = self.configs.get(provider, PromptConfig.default())
-        helper = self.provider_helper_factory.get_helper(provider)
+    async def download_image_data_async(self) -> ImageRegistry:
+        """
+        Asynchronously downloads images if needed and stores them in the image registry.
 
-        # We download all the image data here to avoid downloading the same image multiple times
-        # and to avoid making a lot of sync vs async functions.
-        all_image_data = self.get_image_data(helper)
+        Only downloads images if they haven't already been downloaded and if at least one provider
+        requires downloaded images. The downloaded images are stored in the image registry for reuse.
 
-        # Format and return the prompt using the provider's helper
-        return helper.format_prompt(self.messages, config, all_image_data)
+        Returns:
+            ImageRegistry: The registry containing all downloaded image data
+        """
+        if self.image_registry.num_images() == 0:
+            if self._should_download_images():
+                for image in self.image_list:
+                    image_data = await ImageDownloader.download_async(image)
+                    self.image_registry.add_image_data(image_data)
+        return self.image_registry
+
+    def encode_image_data(self) -> ImageRegistry:
+        for image_data in self.image_registry.get_all_image_data():
+            for config in self.configs:
+                provider_helper = self.provider_helper_factory.get_helper(
+                    config.provider_name
+                )
+                encoded_image_data = provider_helper.process_image(
+                    image_data.binary_data
+                )
+                self.image_registry.add_provider_encoded_image(
+                    image_data.image_path,
+                    config.provider_name,
+                    encoded_image_data,
+                )
+        return self.image_registry
+
+    def build(self):
+        """
+        Builds prompts for all configured providers. If you want to load images asynchronously,
+        call the download_image_data_async() method and then the build() method.
+
+        This method:
+        1. Downloads any required image data if needed
+        2. Encodes the image data according to each provider's requirements
+        3. Formats the prompt for each provider using their specific helper
+
+        The formatted prompts are stored internally and can be retrieved using get_prompt_for().
+        """
+        self.download_image_data()
+        self.encode_image_data()
+        for config in self.configs:
+            helper = self.provider_helper_factory.get_helper(config.provider_name)
+            self.prompts[config.provider_name] = helper.format_prompt(
+                self.messages, config, self.image_registry
+            )
+
+    def get_prompt_for(self, provider_name: str) -> str:
+        if len(self.prompts) == 0:
+            self.build()
+        return self.prompts[provider_name]
+
+    def get_content_for(self, provider_name: str) -> str:
+        if len(self.prompts) == 0:
+            self.build()
+        return self.prompts[provider_name].format_messages(
+            self.messages, self.image_registry
+        )
 
     def clear(self) -> None:
         self.messages = []

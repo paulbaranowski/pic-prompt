@@ -10,7 +10,7 @@ from prompt_any.core.image_config import ImageConfig
 from prompt_any.core.prompt_config import PromptConfig
 from prompt_any.core.prompt_message import PromptMessage
 from prompt_any.core.prompt_content import PromptContent
-from prompt_any.images.image_data import ImageData
+from prompt_any.images.image_registry import ImageRegistry
 
 
 class ProviderHelperAnthropic(ProviderHelper):
@@ -36,7 +36,7 @@ class ProviderHelperAnthropic(ProviderHelper):
         self,
         messages: List[PromptMessage],
         prompt_config: PromptConfig,
-        all_image_data: Dict[str, bytes],
+        all_image_data: ImageRegistry,
     ) -> str:
         self._prompt_config = prompt_config
         self._all_image_data = all_image_data
@@ -54,14 +54,14 @@ class ProviderHelperAnthropic(ProviderHelper):
 
         return json.dumps(prompt)
 
-    def format_content_text(self, content: PromptContent) -> str:
+    def _format_content_text(self, content: PromptContent) -> str:
         """
         Format a text content based on Anthropic's requirements.
         """
         return {"type": "text", "text": content.data}
 
-    def format_content_image(
-        self, content: PromptContent, all_image_data: Dict[str, ImageData]
+    def _format_content_image(
+        self, content: PromptContent, all_image_data: ImageRegistry
     ) -> str:
         """
         Format an image content based on Anthropic's requirements.
@@ -69,12 +69,15 @@ class ProviderHelperAnthropic(ProviderHelper):
         Returns a dictionary containing the image data formatted according to Anthropic's API requirements.
         """
         # look up the image data in all_image_data
-        image_data = all_image_data[content.data]
+        image_data = all_image_data.get_image_data(content.data)
+        if image_data is None:
+            raise ValueError(f"Image data not found for {content.data}")
+        encoded_data = image_data.get_encoded_data_for(self.get_provider_name())
         return {
             "type": "image",
             "source": {
                 "type": "base64",
                 "media_type": image_data.media_type,
-                "data": image_data.encoded_data,
+                "data": encoded_data,
             },
         }

@@ -10,6 +10,7 @@ from prompt_any.core.image_config import ImageConfig
 from prompt_any.core.prompt_config import PromptConfig
 from prompt_any.core.prompt_message import PromptMessage
 from prompt_any.core.prompt_content import PromptContent
+from prompt_any.images.image_registry import ImageRegistry
 
 
 class ProviderHelperOpenAI(ProviderHelper):
@@ -74,20 +75,8 @@ class ProviderHelperOpenAI(ProviderHelper):
 
         return json.dumps(prompt)
 
-    def format_messages(
-        self, messages: List[PromptMessage], all_image_data: Dict[str, bytes]
-    ) -> str:
-        prompt_messages = []
-        for message in messages:
-            msg_dict = {
-                "role": message.role,
-                "content": self.format_content(message, all_image_data),
-            }
-            prompt_messages.append(msg_dict)
-        return prompt_messages
-
-    def format_content_image(
-        self, content: PromptContent, all_image_data: Dict[str, bytes]
+    def _format_content_image(
+        self, content: PromptContent, all_image_data: ImageRegistry
     ) -> str:
         """
         Format an image content based on the provider's requirements.
@@ -99,7 +88,7 @@ class ProviderHelperOpenAI(ProviderHelper):
             "image_url": {"url": f"data:image/jpeg;base64,{content.data}"},
         }
 
-    def format_content_text(self, content: PromptContent) -> str:
+    def _format_content_text(self, content: PromptContent) -> str:
         """
         Format a text content based on the provider's requirements.
         """

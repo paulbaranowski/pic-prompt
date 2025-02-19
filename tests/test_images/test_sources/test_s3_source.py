@@ -104,3 +104,20 @@ async def test_get_image_async_failure(s3_source_async_failure):
     with pytest.raises(ImageSourceError) as excinfo:
         await s3_source_async_failure.get_image_async("s3://mybucket/mykey")
     assert "Async S3 error" in str(excinfo.value)
+
+
+def test_get_media_type(s3_source_success):
+    """Test that get_media_type returns correct MIME types"""
+    # Test common image types
+    assert s3_source_success.get_media_type("s3://bucket/image.jpg") == "image/jpeg"
+    assert s3_source_success.get_media_type("s3://bucket/image.png") == "image/png"
+    assert s3_source_success.get_media_type("s3://bucket/image.gif") == "image/gif"
+
+    # Test with nested path
+    assert (
+        s3_source_success.get_media_type("s3://bucket/path/to/image.jpg")
+        == "image/jpeg"
+    )
+
+    # Test unknown extension
+    assert s3_source_success.get_media_type("s3://bucket/image.unknown") is None

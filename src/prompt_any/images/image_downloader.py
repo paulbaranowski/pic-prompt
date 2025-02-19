@@ -39,6 +39,21 @@ class ImageDownloader:
         """
         self.sources[protocol] = source
 
+    def get_source(self, protocol: str) -> ImageSource:
+        """
+        Get the registered image source for a given protocol.
+
+        Args:
+            protocol (str): The protocol identifier (e.g., "http", "https", "s3", "file").
+
+        Returns:
+            ImageSource: The registered image source for the given protocol.
+
+        Raises:
+            ImageProcessingError: If no registered source is found for the given protocol.
+        """
+        return self.sources[protocol]
+
     def _get_source_for_path(self, path: str) -> ImageSource:
         """
         Determine which registered image source can handle the given path.
@@ -79,7 +94,9 @@ class ImageDownloader:
         try:
             binary_data = source.get_image(path)
             media_type = source.get_media_type(path)
-            return ImageData(binary_data, media_type)
+            return ImageData(
+                image_path=path, binary_data=binary_data, media_type=media_type
+            )
         except Exception as e:
             raise ImageProcessingError(f"Error processing image '{path}': {e}")
 
@@ -101,6 +118,8 @@ class ImageDownloader:
         try:
             binary_data = await source.get_image_async(path)
             media_type = source.get_media_type(path)
-            return ImageData(binary_data, media_type)
+            return ImageData(
+                image_path=path, binary_data=binary_data, media_type=media_type
+            )
         except Exception as e:
             raise ImageProcessingError(f"Error processing image '{path}': {e}")

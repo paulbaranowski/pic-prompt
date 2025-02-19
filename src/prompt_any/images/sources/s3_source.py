@@ -22,6 +22,12 @@ class S3Source(ImageSource):
         self.s3_client = s3_client
         self.timeout = timeout
 
+    def get_source_type(self) -> str:
+        """
+        Get the type of the source.
+        """
+        return "s3"
+
     def get_image(self, s3_uri: str) -> bytes:
         """
         Download image from S3 synchronously.

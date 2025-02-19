@@ -10,37 +10,35 @@ class PromptConfig:
 
     def __init__(
         self,
-        provider: str = "openai",
+        provider_name: str = "openai",
         model: str = "gpt-3.5-turbo",
         temperature: float = 0.7,
         max_tokens: Optional[int] = None,
         top_p: Optional[float] = None,
         json_response: bool = False,
-        json_schema: Optional[Dict[str, Any]] = None,
         is_batch: bool = False,
         method: str = "POST",
         url: str = "",
     ):
-        self._provider = provider
+        self._provider_name = provider_name
         self._model = model
         self._temperature = temperature
         self._max_tokens = max_tokens
         self._top_p = top_p
-        self._json_response = json_response
-        self._json_schema = json_schema
-        self._is_batch = is_batch
+        self._json_response = json_response  # Not implemented
+        self._is_batch = is_batch  # Not implemented
         self._method = method
         self._url = url
 
     # Provider properties
     @property
-    def provider(self) -> str:
+    def provider_name(self) -> str:
         """Get the provider name"""
-        return self._provider
+        return self._provider_name
 
-    @provider.setter
-    def provider(self, value: str) -> None:
-        self._provider = value
+    @provider_name.setter
+    def provider_name(self, value: str) -> None:
+        self._provider_name = value
 
     # Model properties
     @property
@@ -92,16 +90,6 @@ class PromptConfig:
     def json_response(self, value: bool) -> None:
         self._json_response = value
 
-    # JSON schema properties
-    @property
-    def json_schema(self) -> Optional[Dict[str, Any]]:
-        """Get the JSON schema"""
-        return self._json_schema
-
-    @json_schema.setter
-    def json_schema(self, value: Optional[Dict[str, Any]]) -> None:
-        self._json_schema = value
-
     # Batch properties
     @property
     def is_batch(self) -> bool:
@@ -140,13 +128,12 @@ class PromptConfig:
     def to_dict(self) -> Dict[str, Any]:
         """Convert config to dictionary"""
         return {
-            "provider": self._provider,
+            "provider_name": self._provider_name,
             "model": self._model,
             "temperature": self._temperature,
             "max_tokens": self._max_tokens,
             "top_p": self._top_p,
             "json_response": self._json_response,
-            "json_schema": self._json_schema,
             "is_batch": self._is_batch,
             "method": self._method,
             "url": self._url,

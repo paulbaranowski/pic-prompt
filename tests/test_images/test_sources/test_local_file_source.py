@@ -60,3 +60,22 @@ def test_can_handle(local_source):
     assert local_source.can_handle("http://example.com/image.jpg") is False
     assert local_source.can_handle("https://example.com/image.jpg") is False
     assert local_source.can_handle("s3://bucket/image.jpg") is False
+
+
+def test_get_source_type(local_source):
+    """Test that get_source_type returns 'file'"""
+    assert local_source.get_source_type() == "file"
+
+
+def test_get_media_type(local_source):
+    """Test that get_media_type returns correct MIME types"""
+    # Test common image types
+    assert local_source.get_media_type("image.jpg") == "image/jpeg"
+    assert local_source.get_media_type("image.png") == "image/png"
+    assert local_source.get_media_type("image.gif") == "image/gif"
+
+    # Test with path
+    assert local_source.get_media_type("/path/to/image.jpg") == "image/jpeg"
+
+    # Test unknown extension
+    assert local_source.get_media_type("image.unknown") is None

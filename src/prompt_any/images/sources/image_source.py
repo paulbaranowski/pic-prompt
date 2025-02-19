@@ -12,6 +12,13 @@ class ImageSource(ABC):
     """
 
     @abstractmethod
+    def get_source_type(self) -> str:
+        """
+        Get the type of the source.
+        """
+        pass
+
+    @abstractmethod
     def get_image(self, url: str) -> bytes:
         """
         Download an image synchronously.

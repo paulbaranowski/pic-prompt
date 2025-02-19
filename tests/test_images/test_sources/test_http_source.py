@@ -3,6 +3,8 @@ import requests
 from prompt_any.images.sources.http_source import HttpSource
 from prompt_any.images.errors import ImageSourceError
 import os
+import mimetypes
+import aiohttp
 
 REAL_IMAGE_URL = "https://hstwhmjryocigvbffybk.supabase.co/storage/v1/object/public/promptfoo_images/all-pro-dadfs.PNG"
 
@@ -126,3 +128,22 @@ async def test_get_real_image_async():
     data = await http_source.get_image_async(REAL_IMAGE_URL)
     assert len(data) == 2516965
     assert isinstance(data, bytes)
+
+
+def test_get_source_type():
+    http = HttpSource()
+    assert http.get_source_type() == "http"
+
+
+def test_get_media_type_known():
+    http = HttpSource()
+    # Using a known extension, e.g., jpg should return image/jpeg
+    media_type = http.get_media_type("http://example.com/image.jpg")
+    expected = mimetypes.guess_type("image.jpg")[0]
+    assert media_type == expected
+
+
+def test_get_media_type_unknown():
+    http = HttpSource()
+    media_type = http.get_media_type("http://example.com/image.unknown")
+    assert media_type is None

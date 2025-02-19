@@ -38,3 +38,12 @@ packages = ["src/prompt_any"]
 dev = [
     "black>=24.8.0",
 ]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "pass",
+    "abc.abstractmethod",
+    "@abstractmethod"
+]
+

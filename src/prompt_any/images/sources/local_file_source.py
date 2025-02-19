@@ -13,6 +13,12 @@ from prompt_any.images.errors import (
 class LocalFileSource(ImageSource):
     """Loads images from the local filesystem"""
 
+    def get_source_type(self) -> str:
+        """
+        Get the type of the source.
+        """
+        return "file"
+
     def get_image(self, path: str) -> bytes:
         """Read image file from disk synchronously.
 
