@@ -4,15 +4,52 @@ Core message types and classes for prompt building
 
 from typing import List
 from prompt_any.core.message_type import MessageType
+from prompt_any.core.message_role import MessageRole
 from prompt_any.core.prompt_content import PromptContent
 
 
 class PromptMessage:
-    """A message in the prompt"""
+    """
+      A message in the prompt.
+
+      Given the following JSON structure:
+      {
+        "model": "gpt-4o",
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "What's in this image?"},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg",
+                        },
+                    },
+                ],
+            }
+        ]
+    }
+
+
+    This class represents a single "messages" block, like so:
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "What's in this image?"},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg",
+                        },
+                    },
+                ],
+            }
+    """
 
     def __init__(
         self,
-        role: str = "user",
+        role: str,
         content: List[PromptContent] = None,
     ):
         """Initialize a prompt message
@@ -53,9 +90,11 @@ class PromptMessage:
         return self._role
 
     @role.setter
-    def role(self, value: str) -> None:
+    def role(self, role: str) -> None:
         """Set the message role"""
-        self._role = value
+        if role not in MessageRole.ALLOWED_ROLES:
+            raise ValueError(f"Invalid message role: {role}")
+        self._role = role
 
     def __repr__(self) -> str:
         """String representation of the message"""

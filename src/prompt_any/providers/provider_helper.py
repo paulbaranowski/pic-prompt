@@ -67,7 +67,6 @@ class ProviderHelper(ABC):
         """
         pass
 
-    @abstractmethod
     def format_messages(
         self, messages: List[PromptMessage], all_image_data: ImageRegistry
     ) -> str:

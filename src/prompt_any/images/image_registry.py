@@ -31,7 +31,5 @@ class ImageRegistry:
     def get_image_data(self, image_path: str) -> Optional[ImageData]:
         return self.image_data.get(image_path)
 
-    # def get_encoded_data_for(
-    #     self, image_path: str, provider_name: str
-    # ) -> Optional[str]:
-    #     return self.image_data.get(image_path, {}).get_encoded_data_for(provider_name)
+    def has_image(self, image_path: str) -> bool:
+        return image_path in self.image_data

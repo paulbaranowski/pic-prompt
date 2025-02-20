@@ -9,6 +9,8 @@ This module exports the core components for prompt building:
 
 from prompt_any.core.prompt_message import PromptMessage
 from prompt_any.core.message_type import MessageType
+from prompt_any.core.message_role import MessageRole
+from prompt_any.core.prompt_content import PromptContent
 from prompt_any.core.prompt_config import PromptConfig
 from prompt_any.core.image_config import ImageConfig
 from prompt_any.core.errors import (
@@ -21,10 +23,12 @@ from prompt_any.core.errors import (
 __all__ = [
     "PromptMessage",
     "MessageType",
+    "MessageRole",
     "PromptConfig",
     "ImageConfig",
     "PromptBuilderError",
     "ConfigurationError",
     "ProviderError",
     "ImageProcessingError",
+    "PromptContent",
 ]

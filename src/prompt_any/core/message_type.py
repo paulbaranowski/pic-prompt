@@ -1,11 +1,10 @@
 from enum import Enum
 
 
-class MessageType(Enum):
+class MessageType:
     """Types of messages that can be included in a prompt"""
 
-    SYSTEM = "system"
-    USER = "user"
-    ASSISTANT = "assistant"
     IMAGE = "image"
-    FUNCTION = "function"
+    TEXT = "text"
+
+    ALLOWED_TYPES = [IMAGE, TEXT]

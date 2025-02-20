@@ -8,14 +8,29 @@ from prompt_any.providers.provider_names import ProviderNames
 
 
 class PromptBuilder:
-    """Main Builder Class for constructing prompts for various LLM providers."""
+    """
+      Main Builder Class for constructing prompts for various LLM providers.
 
-    def __init__(self, configs: Optional[Dict[str, PromptConfig]] = None):
-        # Use provided configs or default to openai default configuration
-        self.configs: Dict[str, PromptConfig] = (
-            configs if configs is not None else {"openai": PromptConfig.default()}
-        )
-        self.default_provider: str = list(self.configs.keys())[0]
+      Given this JSON structure:
+      {
+      "model": "gpt-4o",
+      "messages": [
+        {
+          "role": "developer",
+          "content": "You are a helpful assistant."
+        },
+        {
+          "role": "user",
+          "content": "Hello!"
+        }
+      ]
+    }
+
+    This class represents the whole block.
+    """
+
+    def __init__(self):
+        self.configs: Dict[str, PromptConfig] = {}
 
         # These are the messages that will be used to build the prompt
         self.messages: List[PromptMessage] = []
@@ -25,6 +40,8 @@ class PromptBuilder:
 
         # This is the factory that will be used to get the provider helper
         self.provider_helper_factory = ProviderHelperFactory()
+
+        self.providers: Dict[str, ProviderHelper] = {}
 
         # This is the cache of all the downloadedimage data
         # self.all_image_data: Dict[str, ImageData] = {}
@@ -67,6 +84,8 @@ class PromptBuilder:
         if provider not in ProviderNames.get_all_names():
             raise ValueError(f"Provider {provider} is not supported")
         self.configs[provider] = config
+        # Reset providers list to force re-initialization with new config
+        self.providers = {}
 
     def get_config(self, provider: str) -> PromptConfig:
         return self.configs.get(provider, PromptConfig.default())
@@ -74,13 +93,15 @@ class PromptBuilder:
     def remove_config(self, provider: str) -> None:
         if provider in self.configs:
             del self.configs[provider]
+            # Reset providers list to force re-initialization
+            self.providers = {}
 
     def has_config(self, provider: str) -> bool:
         return provider in self.configs
 
     def _should_download_images(self) -> bool:
-        for provider in self.configs:
-            if self.configs[provider].get_image_config().needs_download:
+        for provider in self.get_providers().values():
+            if provider.get_image_config().needs_download:
                 return True
         return False
 
@@ -120,19 +141,21 @@ class PromptBuilder:
 
     def encode_image_data(self) -> ImageRegistry:
         for image_data in self.image_registry.get_all_image_data():
-            for config in self.configs:
-                provider_helper = self.provider_helper_factory.get_helper(
-                    config.provider_name
-                )
-                encoded_image_data = provider_helper.process_image(
-                    image_data.binary_data
-                )
+            for provider in self.get_providers().values():
+                encoded_image_data = provider.process_image(image_data.binary_data)
                 self.image_registry.add_provider_encoded_image(
                     image_data.image_path,
-                    config.provider_name,
+                    provider.provider_name,
                     encoded_image_data,
                 )
         return self.image_registry
+
+    def get_providers(self) -> Dict[str, ProviderHelper]:
+        if len(self.providers) == 0:
+            for provider_name, config in self.configs.items():
+                helper = self.provider_helper_factory.get_helper(config.provider_name)
+                self.providers[provider_name] = helper
+        return self.providers
 
     def build(self):
         """
@@ -148,10 +171,9 @@ class PromptBuilder:
         """
         self.download_image_data()
         self.encode_image_data()
-        for config in self.configs:
-            helper = self.provider_helper_factory.get_helper(config.provider_name)
-            self.prompts[config.provider_name] = helper.format_prompt(
-                self.messages, config, self.image_registry
+        for provider in self.get_providers().values():
+            self.prompts[provider.provider_name] = provider.format_prompt(
+                self.messages, self.configs[provider.provider_name], self.image_registry
             )
 
     def get_prompt_for(self, provider_name: str) -> str:
@@ -162,9 +184,8 @@ class PromptBuilder:
     def get_content_for(self, provider_name: str) -> str:
         if len(self.prompts) == 0:
             self.build()
-        return self.prompts[provider_name].format_messages(
-            self.messages, self.image_registry
-        )
+        provider = self.get_providers()[provider_name]
+        return provider.format_messages(self.messages, self.image_registry)
 
     def clear(self) -> None:
         self.messages = []
