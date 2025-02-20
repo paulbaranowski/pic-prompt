@@ -79,10 +79,10 @@ class PromptBuilder:
             self.add_image_message(path)
 
     # Config Methods
-    def add_config(self, provider: str, config: PromptConfig) -> None:
-        if provider not in ProviderNames.get_all_names():
-            raise ValueError(f"Provider {provider} is not supported")
-        self.configs[provider] = config
+    def add_config(self, config: PromptConfig) -> None:
+        if config.provider_name not in ProviderNames.get_all_names():
+            raise ValueError(f"Provider {config.provider_name} is not supported")
+        self.configs[config.provider_name] = config
         # Reset providers list to force re-initialization with new config
         self.providers = {}
 
@@ -171,8 +171,10 @@ class PromptBuilder:
         self.download_image_data()
         self.encode_image_data()
         for provider in self.get_providers().values():
-            self.prompts[provider.provider_name] = provider.format_prompt(
-                self.messages, self.configs[provider.provider_name], self.image_registry
+            self.prompts[provider.get_provider_name()] = provider.format_prompt(
+                self.messages,
+                self.configs[provider.get_provider_name()],
+                self.image_registry,
             )
 
     def get_prompt_for(self, provider_name: str) -> str:

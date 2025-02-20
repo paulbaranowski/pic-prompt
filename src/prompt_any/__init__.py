@@ -14,6 +14,7 @@ from prompt_any.core import (
     ProviderError,
     ImageProcessingError,
 )
+from prompt_any.builder import PromptBuilder
 
 __version__ = "0.1.0"
 
@@ -26,4 +27,5 @@ __all__ = [
     "ConfigurationError",
     "ProviderError",
     "ImageProcessingError",
+    "PromptBuilder",
 ]

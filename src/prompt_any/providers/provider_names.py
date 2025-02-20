@@ -7,9 +7,9 @@ class ProviderNames:
     GEMINI = "gemini"
 
     class_name_to_provider_name = {
-        "ProviderHelperOpenAI": OPENAI,
-        "ProviderHelperAnthropic": ANTHROPIC,
-        "ProviderHelperGemini": GEMINI,
+        "ProviderOpenAI": OPENAI,
+        "ProviderAnthropic": ANTHROPIC,
+        "ProviderGemini": GEMINI,
     }
 
     @classmethod
