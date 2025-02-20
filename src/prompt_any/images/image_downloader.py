@@ -78,17 +78,19 @@ class ImageDownloader:
 
     def download(self, path: str) -> ImageData:
         """
-        Process an image synchronously.
+        Download and process an image synchronously.
 
-        This method retrieves the image from the appropriate source based on the path and then uses the
-        provider helper's encoding method to return the processed image (e.g., encoded as base64 if required).
+        This method retrieves the image from the appropriate source based on the path.
+        It returns an ImageData object containing the binary data and media type.
 
         Args:
             path (str): The path or URI to the image.
-            provider_helper (ProviderHelper): The provider helper dictating the image encoding requirements.
 
         Returns:
-            Union[str, bytes]: The processed (encoded) image data.
+            ImageData: Object containing the image binary data, media type and original path.
+
+        Raises:
+            ImageProcessingError: If there is an error downloading or processing the image.
         """
         source = self._get_source_for_path(path)
         try:
@@ -102,17 +104,19 @@ class ImageDownloader:
 
     async def download_async(self, path: str) -> ImageData:
         """
-        Process an image asynchronously.
+        Download and process an image asynchronously.
 
-        This method retrieves the image asynchronously from the appropriate source and then uses the provider helper
-        to encode the image data.
+        This method retrieves the image asynchronously from the appropriate source based on the path.
+        It returns an ImageData object containing the binary data and media type.
 
         Args:
             path (str): The path or URI to the image.
-            provider_helper (ProviderHelper): The provider helper dictating the image encoding requirements.
 
         Returns:
-            Union[str, bytes]: The processed (encoded) image data.
+            ImageData: Object containing the image binary data, media type and original path.
+
+        Raises:
+            ImageProcessingError: If there is an error downloading or processing the image.
         """
         source = self._get_source_for_path(path)
         try:

@@ -1,8 +1,7 @@
-from typing import List, Dict, Optional
+from typing import List, Dict
 from prompt_any.core import PromptMessage, PromptConfig
-from prompt_any.providers import ProviderHelperFactory, ProviderHelper
+from prompt_any.providers import ProviderFactory, Provider
 from prompt_any.images import ImageDownloader
-from prompt_any.images.image_data import ImageData
 from prompt_any.images.image_registry import ImageRegistry
 from prompt_any.providers.provider_names import ProviderNames
 
@@ -39,9 +38,9 @@ class PromptBuilder:
         self.image_list = []
 
         # This is the factory that will be used to get the provider helper
-        self.provider_helper_factory = ProviderHelperFactory()
+        self.provider_factory = ProviderFactory()
 
-        self.providers: Dict[str, ProviderHelper] = {}
+        self.providers: Dict[str, Provider] = {}
 
         # This is the cache of all the downloadedimage data
         # self.all_image_data: Dict[str, ImageData] = {}
@@ -150,10 +149,10 @@ class PromptBuilder:
                 )
         return self.image_registry
 
-    def get_providers(self) -> Dict[str, ProviderHelper]:
+    def get_providers(self) -> Dict[str, Provider]:
         if len(self.providers) == 0:
             for provider_name, config in self.configs.items():
-                helper = self.provider_helper_factory.get_helper(config.provider_name)
+                helper = self.provider_factory.get_helper(config.provider_name)
                 self.providers[provider_name] = helper
         return self.providers
 

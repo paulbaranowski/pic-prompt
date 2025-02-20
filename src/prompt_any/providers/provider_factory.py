@@ -4,30 +4,30 @@ Factory class for creating ProviderHelper instances.
 
 from typing import Dict, List, Type
 
-from prompt_any.providers.provider_helper import ProviderHelper
-from prompt_any.providers.provider_helper_openai import ProviderHelperOpenAI
-from prompt_any.providers.provider_helper_anthropic import ProviderHelperAnthropic
-from prompt_any.providers.provider_helper_gemini import ProviderHelperGemini
+from prompt_any.providers.provider import Provider
+from prompt_any.providers.provider_openai import ProviderOpenAI
+from prompt_any.providers.provider_anthropic import ProviderAnthropic
+from prompt_any.providers.provider_gemini import ProviderGemini
 from prompt_any.core.errors import ProviderError
 
 
-class ProviderHelperFactory:
+class ProviderFactory:
     MODEL_OPENAI = "openai"
     MODEL_ANTHROPIC = "anthropic"
     MODEL_GEMINI = "gemini"
 
     # Default mapping of provider names to their helper classes
-    _default_helpers: Dict[str, Type[ProviderHelper]] = {
-        MODEL_OPENAI: ProviderHelperOpenAI,
-        MODEL_ANTHROPIC: ProviderHelperAnthropic,
-        MODEL_GEMINI: ProviderHelperGemini,
+    _default_helpers: Dict[str, Type[Provider]] = {
+        MODEL_OPENAI: ProviderOpenAI,
+        MODEL_ANTHROPIC: ProviderAnthropic,
+        MODEL_GEMINI: ProviderGemini,
     }
 
     def __init__(self) -> None:
         """Initialize the factory with default helper classes."""
-        self._helpers: Dict[str, Type[ProviderHelper]] = self._default_helpers.copy()
+        self._helpers: Dict[str, Type[Provider]] = self._default_helpers.copy()
 
-    def register_helper(self, name: str, helper: Type[ProviderHelper]) -> None:
+    def register_helper(self, name: str, helper: Type[Provider]) -> None:
         """
         Register a new provider helper.
 
@@ -37,7 +37,7 @@ class ProviderHelperFactory:
         """
         self._helpers[name] = helper
 
-    def get_helper(self, model: str = MODEL_OPENAI) -> ProviderHelper:
+    def get_helper(self, model: str = MODEL_OPENAI) -> Provider:
         """
         Retrieve a ProviderHelper instance for the given model/provider.
 

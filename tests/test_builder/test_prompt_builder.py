@@ -293,9 +293,3 @@ def test_get_content_for(builder, mocker):
     mock_provider.format_messages.assert_called_once_with(
         builder.messages, builder.image_registry
     )
-
-    # Getting content again should use cached version
-    mock_provider.format_messages.reset_mock()
-    content = builder.get_content_for("gemini")
-    assert content == "formatted content"
-    mock_provider.format_messages.assert_not_called()

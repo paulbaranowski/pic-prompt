@@ -5,7 +5,7 @@ Provider helper implementation for OpenAI.
 import json
 from typing import List, Dict
 
-from prompt_any.providers.provider_helper import ProviderHelper
+from prompt_any.providers.provider import Provider
 from prompt_any.core.image_config import ImageConfig
 from prompt_any.core.prompt_config import PromptConfig
 from prompt_any.core.prompt_message import PromptMessage
@@ -13,7 +13,7 @@ from prompt_any.core.prompt_content import PromptContent
 from prompt_any.images.image_registry import ImageRegistry
 
 
-class ProviderHelperOpenAI(ProviderHelper):
+class ProviderOpenAI(Provider):
     """
     ProviderHelper implementation for OpenAI.
 

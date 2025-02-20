@@ -16,7 +16,7 @@ from prompt_any.images.image_registry import ImageRegistry
 from prompt_any.providers.provider_names import ProviderNames
 
 
-class ProviderHelper(ABC):
+class Provider(ABC):
     """
     Abstract base class that handles both prompt formatting and image requirements for a specific provider.
 
