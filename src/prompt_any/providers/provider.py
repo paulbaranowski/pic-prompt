@@ -92,10 +92,10 @@ class Provider(ABC):
         for content in message.content:
             if content.type == MessageType.IMAGE:
                 formatted_content.append(
-                    self.format_content_image(content, all_image_data)
+                    self._format_content_image(content, all_image_data)
                 )
             elif content.type == MessageType.TEXT:
-                formatted_content.append(self.format_content_text(content))
+                formatted_content.append(self._format_content_text(content))
         return formatted_content
 
     @abstractmethod

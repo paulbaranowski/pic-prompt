@@ -61,7 +61,7 @@ class ProviderOpenAI(Provider):
         """
         self._prompt_config = prompt_config
         self._all_image_data = all_image_data
-        prompt_messages = self.format_messages(messages)
+        prompt_messages = self.format_messages(messages, all_image_data)
         prompt = {
             "messages": prompt_messages,
             "model": prompt_config.model,

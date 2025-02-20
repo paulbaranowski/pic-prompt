@@ -89,7 +89,7 @@ class ProviderGemini(Provider):
         formatted_contents = []
         for message in messages:
             formatted_content = self.format_content(message, all_image_data)
-            formatted_contents.extend(formatted_content)
+            formatted_contents.append(formatted_content)
         return {"contents": formatted_contents}
 
     def format_content(
@@ -117,12 +117,7 @@ class ProviderGemini(Provider):
         if len(image_parts) == 1 and len(text_parts) == 1:
             parts = image_parts + text_parts
         else:
-            # Otherwise preserve original order
-            for content in message.content:
-                if content.type == MessageType.IMAGE:
-                    parts.append(self._format_content_image(content, all_image_data))
-                elif content.type == MessageType.TEXT:
-                    parts.append(self._format_content_text(content))
+            parts = text_parts + image_parts
 
         return {"parts": parts}
 

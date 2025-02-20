@@ -61,6 +61,8 @@ class PromptMessage:
         """
         if content is None:
             content = []
+        if not all(isinstance(item, PromptContent) for item in content):
+            raise TypeError("All content items must be PromptContent objects")
         self._content_list = content
         self._role = role
 
