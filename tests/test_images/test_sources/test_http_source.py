@@ -4,7 +4,6 @@ from prompt_any.images.sources.http_source import HttpSource
 from prompt_any.images.errors import ImageSourceError
 import os
 import mimetypes
-import aiohttp
 
 REAL_IMAGE_URL = "https://hstwhmjryocigvbffybk.supabase.co/storage/v1/object/public/promptfoo_images/all-pro-dadfs.PNG"
 
@@ -15,15 +14,15 @@ class DummyResponse:
         self.content = content
 
 
-def dummy_requests_get_success(url, timeout=30):
+def dummy_requests_get_success(url, timeout=30, headers=None):
     return DummyResponse(200, b"imagedata")
 
 
-def dummy_requests_get_failure(url, timeout=30):
+def dummy_requests_get_failure(url, timeout=30, headers=None):
     return DummyResponse(404, b"")
 
 
-def dummy_requests_get_exception(url, timeout=30):
+def dummy_requests_get_exception(url, timeout=30, headers=None):
     raise Exception("Network error")
 
 

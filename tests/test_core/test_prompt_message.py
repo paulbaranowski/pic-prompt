@@ -90,3 +90,13 @@ def test_repr(text_message):
     """Test string representation"""
     expected = f"PromptMessage(role='user', content={text_message.content!r})"
     assert repr(text_message) == expected
+
+
+def test_init_invalid_content():
+    """Test initialization with invalid content type"""
+    with pytest.raises(
+        TypeError, match="All content items must be PromptContent objects"
+    ):
+        PromptMessage(
+            role=MessageRole.USER, content=[{"type": "text", "content": "test"}]
+        )

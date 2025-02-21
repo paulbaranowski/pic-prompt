@@ -5,11 +5,13 @@ class ProviderNames:
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     GEMINI = "gemini"
+    MOCK = "mock"
 
     class_name_to_provider_name = {
         "ProviderOpenAI": OPENAI,
         "ProviderAnthropic": ANTHROPIC,
         "ProviderGemini": GEMINI,
+        "MockProvider": MOCK,
     }
 
     @classmethod

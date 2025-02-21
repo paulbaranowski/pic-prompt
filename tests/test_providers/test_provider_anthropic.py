@@ -1,22 +1,24 @@
 import pytest
 import json
-from prompt_any.providers.provider_openai import ProviderOpenAI
+from prompt_any.providers.provider_anthropic import ProviderAnthropic
 from prompt_any.core.prompt_config import PromptConfig
 from prompt_any.core.prompt_message import PromptMessage
 from prompt_any.core.prompt_content import PromptContent
 from prompt_any.images.image_registry import ImageRegistry
+from prompt_any.images.image_data import ImageData
+from conftest import create_test_image
 
 
 @pytest.fixture
 def provider():
-    return ProviderOpenAI()
+    return ProviderAnthropic()
 
 
 @pytest.fixture
 def basic_config():
     return PromptConfig(
-        provider_name="openai",
-        model="gpt-3.5-turbo",
+        provider_name="anthropic",
+        model="claude-2",
         temperature=0.7,
         max_tokens=100,
         top_p=1.0,
@@ -25,10 +27,10 @@ def basic_config():
 
 def test_image_config(provider):
     config = provider.get_image_config()
-    assert config.requires_base64 is False
+    assert config.requires_base64 is True
     assert config.max_size == 5_000_000
-    assert config.supported_formats == ["png", "jpeg", "jpg"]
-    assert config.needs_download is False
+    assert config.supported_formats == ["png", "jpeg", "gif", "webp"]
+    assert config.needs_download is True
 
 
 def test_format_prompt_basic(provider, basic_config):
@@ -48,7 +50,7 @@ def test_format_prompt_basic(provider, basic_config):
     result = provider.format_prompt(messages, basic_config, ImageRegistry())
     parsed = json.loads(result)
 
-    assert parsed["model"] == "gpt-3.5-turbo"
+    assert parsed["model"] == "claude-2"
     assert parsed["temperature"] == 0.7
     assert parsed["max_tokens"] == 100
     assert parsed["top_p"] == 1.0
@@ -79,8 +81,6 @@ def test_format_prompt_with_json_schema(provider, basic_config):
 
 
 def test_format_content_text(provider):
-    from prompt_any.core.prompt_content import PromptContent
-
     content = PromptContent(type="text", content="Hello world")
     result = provider._format_content_text(content)
 
@@ -89,29 +89,27 @@ def test_format_content_text(provider):
 
 
 def test_format_content_image(provider):
-    from prompt_any.core.prompt_content import PromptContent
-
-    content = PromptContent(type="image", content="http://example.com/image.jpg")
+    content = PromptContent(type="image", content="test_image")
     registry = ImageRegistry()
+    image_data = ImageData(
+        image_path="test_image",
+        media_type="image/jpeg",
+        binary_data=create_test_image(),
+    )
+    image_data.add_provider_encoded_image(provider.get_provider_name(), "encoded_data")
+    registry.add_image_data(image_data)
 
     result = provider._format_content_image(content, registry)
 
-    assert result["type"] == "image_url"
-    assert result["image_url"]["url"] == "http://example.com/image.jpg"
+    assert result["type"] == "image"
+    assert result["source"]["type"] == "base64"
+    assert result["source"]["media_type"] == "image/jpeg"
+    assert result["source"]["data"] == "encoded_data"
 
 
-def test_format_content_image_base64(provider):
-    from prompt_any.core.prompt_content import PromptContent
-
-    # Set requires_base64 to True
-    provider._image_config.requires_base64 = True
-
-    content = PromptContent(
-        type="image", content="SGVsbG8gd29ybGQ="
-    )  # Example base64 data
+def test_format_content_image_not_found(provider):
+    content = PromptContent(type="image", content="missing_image")
     registry = ImageRegistry()
 
-    result = provider._format_content_image(content, registry)
-
-    assert result["type"] == "image_url"
-    assert result["image_url"]["url"] == "data:image/jpeg;base64,SGVsbG8gd29ybGQ="
+    with pytest.raises(ValueError, match="Image data not found for missing_image"):
+        provider._format_content_image(content, registry)

@@ -12,13 +12,11 @@ The sources subpackage contains implementations for different image sources:
 from prompt_any.images.image_downloader import ImageDownloader
 from prompt_any.images.errors import ImageSourceError
 from prompt_any.images.image_registry import ImageRegistry
-from prompt_any.images.image_transformer import ImageTransformer
 from prompt_any.images.image_data import ImageData
 
 __all__ = [
     "ImageDownloader",
     "ImageSourceError",
     "ImageRegistry",
-    "ImageTransformer",
     "ImageData",
 ]

@@ -75,3 +75,18 @@ def test_property_getters(default_config):
     assert isinstance(default_config.max_size, int)
     assert isinstance(default_config.supported_formats, list)
     assert isinstance(default_config.needs_download, bool)
+
+
+def test_property_setters(default_config):
+    """Test property setter methods"""
+    default_config.requires_base64 = True
+    assert default_config.requires_base64 is True
+
+    default_config.max_size = 2_000_000
+    assert default_config.max_size == 2_000_000
+
+    default_config.supported_formats = ["jpg", "gif"]
+    assert default_config.supported_formats == ["jpg", "gif"]
+
+    default_config.needs_download = True
+    assert default_config.needs_download is True

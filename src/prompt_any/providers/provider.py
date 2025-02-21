@@ -3,17 +3,16 @@ Base provider helper interface for handling prompt formatting and provider-speci
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Union
+from typing import List, Union
 import base64
 
 from prompt_any.core.image_config import ImageConfig
 from prompt_any.core.prompt_config import PromptConfig
 from prompt_any.core.prompt_message import PromptMessage, MessageType
 from prompt_any.core.prompt_content import PromptContent
-from prompt_any.images import ImageTransformer
-from prompt_any.images.image_data import ImageData
 from prompt_any.images.image_registry import ImageRegistry
 from prompt_any.providers.provider_names import ProviderNames
+from prompt_any.images.image_data import ImageData
 
 
 class Provider(ABC):
@@ -31,7 +30,6 @@ class Provider(ABC):
     def __init__(self) -> None:
         self._image_config: ImageConfig = self.get_image_config()
         self._prompt_config: Union[PromptConfig, None] = None
-        self._image_registry: Union[ImageRegistry, None] = None
 
     def get_provider_name(self) -> str:
         """
@@ -114,19 +112,36 @@ class Provider(ABC):
         """
         pass
 
-    def process_image(self, binary_data: bytes) -> str:
+    def process_image(self, image_data: ImageData) -> str:
         """
         Process an image based on the provider's requirements.
+
+        If the provider requires base64 encoding, this will:
+        1. Encode the original image
+        2. If too large, try resampling the image and re-encode
+        3. If still too large, resize the image and re-encode
+
+        The encoded image data is stored in the ImageData object for later use.
+
+        Args:
+            image_data (ImageData): The image data to process
+
+        Returns:
+            ImageData: The processed image data with encoded versions stored
         """
         if self.get_image_config().requires_base64:
-            encoded_data = self.encode_image(binary_data)
+            encoded_data = self.encode_image(image_data.binary_data)
             if len(encoded_data) > self.get_image_config().max_size:
-                resized_image = ImageTransformer.resize(binary_data)
-                encoded_data = self.encode_image(resized_image)
-            return encoded_data
-        else:
-            # should never happen
-            return binary_data
+                resampled_image = image_data.resample_image()
+                encoded_data = self.encode_image(resampled_image)
+                # if that didn't work, try resizing
+                if len(encoded_data) > self.get_image_config().max_size:
+                    resized_image = image_data.resize(self.get_image_config().max_size)
+                    encoded_data = self.encode_image(resized_image)
+            image_data.add_provider_encoded_image(
+                self.get_provider_name(), encoded_data
+            )
+        return image_data
 
     def encode_image(self, binary_data: bytes) -> str:
         """

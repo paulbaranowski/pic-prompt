@@ -3,7 +3,7 @@ Provider helper implementation for OpenAI.
 """
 
 import json
-from typing import List, Dict
+from typing import List
 
 from prompt_any.providers.provider import Provider
 from prompt_any.core.image_config import ImageConfig
@@ -26,8 +26,6 @@ class ProviderOpenAI(Provider):
     def __init__(self) -> None:
         super().__init__()
 
-        self.needs_images_downloaded = False
-
     def get_image_config(self) -> ImageConfig:
         """
         Return OpenAI's default image configuration.
@@ -43,7 +41,7 @@ class ProviderOpenAI(Provider):
         self,
         messages: List[PromptMessage],
         prompt_config: PromptConfig,
-        all_image_data: Dict[str, bytes],
+        all_image_data: ImageRegistry,
     ) -> str:
         """
         Format the prompt for the OpenAI provider.
@@ -83,10 +81,16 @@ class ProviderOpenAI(Provider):
 
         Returns a dictionary containing the image URL formatted according to OpenAI's API requirements.
         """
-        return {
-            "type": "image_url",
-            "image_url": {"url": f"data:image/jpeg;base64,{content.data}"},
-        }
+        if self._image_config.requires_base64:
+            return {
+                "type": "image_url",
+                "image_url": {"url": f"data:image/jpeg;base64,{content.data}"},
+            }
+        else:
+            return {
+                "type": "image_url",
+                "image_url": {"url": content.data},
+            }
 
     def _format_content_text(self, content: PromptContent) -> str:
         """

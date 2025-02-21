@@ -28,20 +28,40 @@ class ImageConfig:
         """Whether images need to be base64 encoded"""
         return self._requires_base64
 
+    @requires_base64.setter
+    def requires_base64(self, value: bool) -> None:
+        """Set whether images need to be base64 encoded"""
+        self._requires_base64 = value
+
     @property
     def max_size(self) -> int:
         """Maximum allowed image size in bytes"""
         return self._max_size
+
+    @max_size.setter
+    def max_size(self, value: int) -> None:
+        """Set maximum allowed image size in bytes"""
+        self._max_size = value
 
     @property
     def supported_formats(self) -> List[str]:
         """List of supported image formats"""
         return self._supported_formats
 
+    @supported_formats.setter
+    def supported_formats(self, value: List[str]) -> None:
+        """Set list of supported image formats"""
+        self._supported_formats = value
+
     @property
     def needs_download(self) -> bool:
         """Whether images need to be downloaded"""
         return self._needs_download
+
+    @needs_download.setter
+    def needs_download(self, value: bool) -> None:
+        """Set whether images need to be downloaded"""
+        self._needs_download = value
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert config to dictionary"""

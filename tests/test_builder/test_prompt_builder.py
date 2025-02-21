@@ -1,8 +1,9 @@
 import pytest
 from prompt_any.builder.prompt_builder import PromptBuilder
-from prompt_any.core import PromptConfig, PromptMessage
+from prompt_any.core import PromptConfig
 from prompt_any.core.message_role import MessageRole
 from prompt_any.core.message_type import MessageType
+import os
 
 
 @pytest.fixture
@@ -10,7 +11,7 @@ def builder():
     """Basic prompt builder fixture"""
     config = PromptConfig(provider_name="openai")
     builder = PromptBuilder()
-    builder.add_config("openai", config)
+    builder.add_config(config)
     return builder
 
 
@@ -20,12 +21,17 @@ def custom_config():
     return PromptConfig(provider_name="openai", model="foobar")
 
 
+@pytest.fixture
+def invalid_config():
+    """Custom prompt config fixture"""
+    return PromptConfig(provider_name="blah", model="foobar")
+
+
 def test_init_default():
     """Test initialization with default config"""
     builder = PromptBuilder()
     assert len(builder.configs) == 0
     assert len(builder.messages) == 0
-    assert len(builder.image_list) == 0
     assert len(builder.prompts) == 0
     assert builder.image_registry.num_images() == 0
 
@@ -33,13 +39,12 @@ def test_init_default():
 def test_init_custom(custom_config):
     """Test initialization with custom config"""
     builder = PromptBuilder()
-    builder.add_config("openai", custom_config)
+    builder.add_config(custom_config)
     assert len(builder.configs) == 1
     assert "openai" in builder.configs
     assert builder.configs["openai"] == custom_config
     assert builder.configs["openai"].model == "foobar"
     assert len(builder.messages) == 0
-    assert len(builder.image_list) == 0
     assert len(builder.prompts) == 0
     assert builder.image_registry.num_images() == 0
 
@@ -72,7 +77,6 @@ def test_add_image_message(builder):
     assert builder.messages[0].role == MessageRole.USER
     assert builder.messages[0].content[0].type == MessageType.IMAGE
     assert builder.messages[0].content[0].data == image_path
-    assert image_path in builder.image_list
 
 
 def test_add_image_messages(builder):
@@ -80,11 +84,11 @@ def test_add_image_messages(builder):
     image_paths = ["path/to/image1.jpg", "path/to/image2.jpg", "path/to/image3.jpg"]
     builder.add_image_messages(image_paths)
     assert len(builder.messages) == len(image_paths)
-    for i, path in enumerate(image_paths):
+    registry = builder.image_registry
+    for i, image_data in enumerate(registry.get_all_image_data()):
         assert builder.messages[i].role == MessageRole.USER
         assert builder.messages[i].content[0].type == MessageType.IMAGE
-        assert builder.messages[i].content[0].data == path
-        assert path in builder.image_list
+        assert builder.messages[i].content[0].data == image_data.image_path
 
 
 def test_add_assistant_message(builder):
@@ -99,7 +103,7 @@ def test_add_assistant_message(builder):
 
 def test_add_config(builder, custom_config):
     """Test adding new config"""
-    builder.add_config("openai", custom_config)
+    builder.add_config(custom_config)
     assert "openai" in builder.configs
     assert builder.configs["openai"] == custom_config
 
@@ -132,10 +136,10 @@ def test_clear(builder):
     assert len(builder.messages) == 0
 
 
-def test_add_invalid_provider(builder, custom_config):
+def test_add_invalid_provider(builder, invalid_config):
     """Test adding config with invalid provider"""
     with pytest.raises(ValueError):
-        builder.add_config("invalid_provider", custom_config)
+        builder.add_config(invalid_config)
 
 
 def test_repr(builder):
@@ -152,7 +156,7 @@ def test_should_download_images(builder):
     # Add config that requires image download
     config = PromptConfig.default()
     config.provider_name = "gemini"  # Gemini requires image download
-    builder.add_config("gemini", config)
+    builder.add_config(config)
     assert builder._should_download_images() is True
 
     # Remove config that requires download
@@ -170,7 +174,7 @@ def test_download_image_data(builder, mocker):
     builder.add_image_message("test.jpg")
     config = PromptConfig.default()
     config.provider_name = "gemini"
-    builder.add_config("gemini", config)
+    builder.add_config(config)
 
     # Download images
     registry = builder.download_image_data()
@@ -188,6 +192,59 @@ def test_download_image_data(builder, mocker):
     mock_download.assert_not_called()
 
 
+@pytest.mark.integration
+@pytest.mark.skipif(
+    not os.getenv("RUN_INTEGRATION_TESTS"),
+    reason="Integration tests are disabled. Set RUN_INTEGRATION_TESTS=1 to enable.",
+)
+def test_download_real_image(builder):
+    """Test downloading a real image from Wikipedia"""
+    # Use a stable Wikimedia Commons image URL
+    wiki_image = "https://upload.wikimedia.org/wikipedia/commons/d/d3/Boulevard_du_Temple_by_Daguerre.jpg"
+
+    # Add image message and config requiring download
+    builder.add_image_message(wiki_image)
+    config = PromptConfig.default()
+    config.provider_name = "anthropic"  # Anthropic requires image download
+    builder.add_config(config)
+
+    # Download image
+    registry = builder.download_image_data()
+
+    # Verify image was downloaded and added to registry
+    assert registry.num_images() == 1
+    assert registry.has_image(wiki_image)
+
+    # Verify we got actual image data
+    image_data = registry.get_image_data(wiki_image)
+    assert image_data is not None
+    assert len(image_data.binary_data) > 0
+    assert image_data.media_type == "image/jpeg"
+
+
+@pytest.mark.integration
+@pytest.mark.skipif(
+    not os.getenv("RUN_INTEGRATION_TESTS"),
+    reason="Integration tests are disabled. Set RUN_INTEGRATION_TESTS=1 to enable.",
+)
+def test_download_real_image_with_403_error_integration(builder):
+    """Integration test: Verify behavior when downloading an image returns a 403 error"""
+    # Use a stable Wikimedia Commons image URL
+    wiki_image = "https://upload.wikimedia.org/wikipedia/commons/d/d3/Boulevard_du_Teple_by_Daguerre.jpg"
+
+    # Add image message and config requiring download
+    builder.add_image_message(wiki_image)
+    config = PromptConfig.default()
+    config.provider_name = "anthropic"  # Anthropic requires image download
+    builder.add_config(config)
+
+    # Download image
+    registry = builder.download_image_data()
+
+    # Verify image was downloaded and added to registry
+    assert registry.num_images() == 0
+
+
 def test_encode_image_data(builder, mocker):
     """Test encoding image data for providers"""
     # Mock image download and provider processing
@@ -200,7 +257,7 @@ def test_encode_image_data(builder, mocker):
     builder.add_image_message("test.jpg")
     config = PromptConfig.default()
     config.provider_name = "gemini"
-    builder.add_config("gemini", config)
+    builder.add_config(config)
 
     # Download images first
     builder.download_image_data()
@@ -232,6 +289,7 @@ def test_get_prompt_for(builder, mocker):
     # Mock provider and config
     mock_provider = mocker.Mock()
     mock_provider.provider_name = "gemini"
+    mock_provider.get_provider_name.return_value = "gemini"
     mock_provider.format_prompt.return_value = "formatted prompt"
     mock_provider.get_image_config.return_value = mocker.Mock(needs_download=False)
 
@@ -242,7 +300,7 @@ def test_get_prompt_for(builder, mocker):
     # Add config
     config = PromptConfig.default()
     config.provider_name = "gemini"
-    builder.add_config("gemini", config)
+    builder.add_config(config)
 
     # Add some messages
     builder.add_system_message("system message")
@@ -269,6 +327,7 @@ def test_get_content_for(builder, mocker):
     # Mock provider and config
     mock_provider = mocker.Mock()
     mock_provider.provider_name = "gemini"
+    mock_provider.get_provider_name.return_value = "gemini"
     mock_provider.format_messages.return_value = "formatted content"
     mock_provider.get_image_config.return_value = mocker.Mock(needs_download=False)
 
@@ -279,7 +338,7 @@ def test_get_content_for(builder, mocker):
     # Add config
     config = PromptConfig.default()
     config.provider_name = "gemini"
-    builder.add_config("gemini", config)
+    builder.add_config(config)
 
     # Add some messages
     builder.add_system_message("system message")

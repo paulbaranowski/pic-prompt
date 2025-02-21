@@ -4,6 +4,7 @@ from prompt_any.providers import ProviderFactory, Provider
 from prompt_any.images import ImageDownloader
 from prompt_any.images.image_registry import ImageRegistry
 from prompt_any.providers.provider_names import ProviderNames
+from prompt_any.images.errors import ImageSourceError
 
 
 class PromptBuilder:
@@ -34,16 +35,10 @@ class PromptBuilder:
         # These are the messages that will be used to build the prompt
         self.messages: List[PromptMessage] = []
 
-        # These are the images that will be downloaded and processed
-        self.image_list = []
-
         # This is the factory that will be used to get the provider helper
         self.provider_factory = ProviderFactory()
 
         self.providers: Dict[str, Provider] = {}
-
-        # This is the cache of all the downloadedimage data
-        # self.all_image_data: Dict[str, ImageData] = {}
 
         # This is the registry of all the downloaded image data
         self.image_registry = ImageRegistry()
@@ -71,7 +66,7 @@ class PromptBuilder:
         # Initially store the raw image path. Image processing will occur in get_prompt_for.
         pm = PromptMessage(role="user")
         pm.add_image(image_path)
-        self.image_list.append(image_path)
+        self.image_registry.add_image_path(image_path)
         self.messages.append(pm)
 
     def add_image_messages(self, image_paths: List[str]) -> None:
@@ -116,9 +111,13 @@ class PromptBuilder:
         """
         if self.image_registry.num_images() == 0:
             if self._should_download_images():
-                for image in self.image_list:
-                    image_data = ImageDownloader.download(image)
-                    self.image_registry.add_image_data(image_data)
+                for image_data in self.image_registry.get_all_image_data():
+                    try:
+                        image_data = ImageDownloader().download(image_data.image_path)
+                        # replace the old image data with the new one
+                        self.image_registry.add_image_data(image_data)
+                    except ImageSourceError as e:
+                        print(f"Error downloading image {image_data.image_path}: {e}")
         return self.image_registry
 
     async def download_image_data_async(self) -> ImageRegistry:
@@ -133,26 +132,27 @@ class PromptBuilder:
         """
         if self.image_registry.num_images() == 0:
             if self._should_download_images():
-                for image in self.image_list:
-                    image_data = await ImageDownloader.download_async(image)
-                    self.image_registry.add_image_data(image_data)
+                for image_data in self.image_registry.get_all_image_data():
+                    try:
+                        image_data = await ImageDownloader.download_async(
+                            image_data.image_path
+                        )
+                        # replace the old image data with the new one
+                        self.image_registry.add_image_data(image_data)
+                    except ImageSourceError as e:
+                        print(f"Error downloading image {image_data.image_path}: {e}")
         return self.image_registry
 
     def encode_image_data(self) -> ImageRegistry:
         for image_data in self.image_registry.get_all_image_data():
             for provider in self.get_providers().values():
-                encoded_image_data = provider.process_image(image_data.binary_data)
-                self.image_registry.add_provider_encoded_image(
-                    image_data.image_path,
-                    provider.provider_name,
-                    encoded_image_data,
-                )
+                provider.process_image(image_data)
         return self.image_registry
 
     def get_providers(self) -> Dict[str, Provider]:
         if len(self.providers) == 0:
             for provider_name, config in self.configs.items():
-                helper = self.provider_factory.get_helper(config.provider_name)
+                helper = self.provider_factory.get_provider(config.provider_name)
                 self.providers[provider_name] = helper
         return self.providers
 

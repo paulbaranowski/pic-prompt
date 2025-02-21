@@ -6,7 +6,21 @@ from typing import Optional, Dict, Any, List
 
 
 class PromptConfig:
-    """Configuration for prompt generation"""
+    """
+    Configuration for prompt generation.
+    For content generation (prompt_builder.get_content_for()), only the provider_name is required.
+
+    Args:
+        provider_name: The name of the provider to use.
+        model: The model to use.
+        temperature: The temperature to use.
+        max_tokens: The maximum number of tokens to use.
+        top_p: The top p value to use.
+        json_response: Whether to return a JSON response.
+        is_batch: Whether to use batch processing.
+        method: The HTTP method to use.
+        url: The URL to use.
+    """
 
     def __init__(
         self,
@@ -20,7 +34,7 @@ class PromptConfig:
         method: str = "POST",
         url: str = "",
     ):
-        self._provider_name = provider_name
+        self._provider_name = provider_name.lower()
         self._model = model
         self._temperature = temperature
         self._max_tokens = max_tokens

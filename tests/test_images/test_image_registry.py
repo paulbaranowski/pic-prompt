@@ -1,6 +1,9 @@
 import pytest
 from prompt_any.images.image_registry import ImageRegistry
 from prompt_any.images.image_data import ImageData
+from PIL import Image
+from io import BytesIO
+from conftest import create_test_image
 
 
 @pytest.fixture
@@ -12,7 +15,7 @@ def image_registry():
 def sample_image_data():
     return ImageData(
         image_path="test/image.jpg",
-        binary_data=b"test_binary_data",
+        binary_data=create_test_image(),
         media_type="image/jpeg",
     )
 
@@ -49,7 +52,7 @@ def test_get_binary_data(image_registry, sample_image_data):
     image_registry.add_image_data(sample_image_data)
 
     binary_data = image_registry.get_binary_data("test/image.jpg")
-    assert binary_data == b"test_binary_data"
+    assert binary_data == create_test_image()
 
 
 def test_add_provider_encoded_image(image_registry, sample_image_data):

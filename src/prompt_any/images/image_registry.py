@@ -6,6 +6,9 @@ class ImageRegistry:
     def __init__(self):
         self.image_data: Dict[str, ImageData] = {}
 
+    def add_image_path(self, image_path: str):
+        self.image_data[image_path] = ImageData(image_path)
+
     def add_image_data(self, image_data: ImageData):
         self.image_data[image_data.image_path] = image_data
 

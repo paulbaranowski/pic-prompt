@@ -3,7 +3,7 @@ Provider helper implementation for Anthropic.
 """
 
 import json
-from typing import List, Dict
+from typing import List
 
 from prompt_any.providers.provider import Provider
 from prompt_any.core.image_config import ImageConfig
@@ -21,7 +21,7 @@ class ProviderAnthropic(Provider):
     def __init__(self) -> None:
         super().__init__()
 
-    def default_image_config(self) -> ImageConfig:
+    def get_image_config(self) -> ImageConfig:
         """
         Return Anthropic's default image configuration.
         """
@@ -40,7 +40,7 @@ class ProviderAnthropic(Provider):
     ) -> str:
         self._prompt_config = prompt_config
         self._all_image_data = all_image_data
-        prompt_messages = self.format_messages(messages)
+        prompt_messages = self.format_messages(messages, all_image_data)
         prompt = {
             "messages": prompt_messages,
             "model": prompt_config.model,
@@ -81,3 +81,9 @@ class ProviderAnthropic(Provider):
                 "data": encoded_data,
             },
         }
+
+    def encode_image(self, binary_data: bytes) -> str:
+        """
+        Encode an image to base64 as required by Anthropic's API.
+        """
+        return super().encode_image(binary_data)

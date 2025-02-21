@@ -93,14 +93,12 @@ class ImageDownloader:
             ImageProcessingError: If there is an error downloading or processing the image.
         """
         source = self._get_source_for_path(path)
-        try:
-            binary_data = source.get_image(path)
-            media_type = source.get_media_type(path)
-            return ImageData(
-                image_path=path, binary_data=binary_data, media_type=media_type
-            )
-        except Exception as e:
-            raise ImageProcessingError(f"Error processing image '{path}': {e}")
+        binary_data = source.get_image(path)
+        media_type = source.get_media_type(path)
+        image_data = ImageData(
+            image_path=path, binary_data=binary_data, media_type=media_type
+        )
+        return image_data
 
     async def download_async(self, path: str) -> ImageData:
         """
@@ -119,11 +117,8 @@ class ImageDownloader:
             ImageProcessingError: If there is an error downloading or processing the image.
         """
         source = self._get_source_for_path(path)
-        try:
-            binary_data = await source.get_image_async(path)
-            media_type = source.get_media_type(path)
-            return ImageData(
-                image_path=path, binary_data=binary_data, media_type=media_type
-            )
-        except Exception as e:
-            raise ImageProcessingError(f"Error processing image '{path}': {e}")
+        binary_data = await source.get_image_async(path)
+        media_type = source.get_media_type(path)
+        return ImageData(
+            image_path=path, binary_data=binary_data, media_type=media_type
+        )

@@ -24,42 +24,23 @@ class ProviderFactory:
     }
 
     def __init__(self) -> None:
-        """Initialize the factory with default helper classes."""
-        self._helpers: Dict[str, Type[Provider]] = self._default_helpers.copy()
+        """Initialize the factory with default provider classes."""
+        self._providers: Dict[str, Type[Provider]] = self._default_helpers.copy()
 
-    def register_helper(self, name: str, helper: Type[Provider]) -> None:
+    def get_provider(self, model: str = MODEL_OPENAI) -> Provider:
         """
-        Register a new provider helper.
-
-        Args:
-            name (str): The provider's name.
-            helper (Type[ProviderHelper]): The helper class for the provider.
-        """
-        self._helpers[name] = helper
-
-    def get_helper(self, model: str = MODEL_OPENAI) -> Provider:
-        """
-        Retrieve a ProviderHelper instance for the given model/provider.
+        Retrieve a Provider instance for the given model/provider.
 
         Args:
             model (str, optional): The provider's name. Defaults to "openai".
 
         Returns:
-            ProviderHelper: An instance of the provider helper.
+            Provider: An instance of the provider.
 
         Raises:
-            ProviderError: If no helper is registered for the given model.
+            ProviderError: If no provider is registered for the given model.
         """
-        helper_class = self._helpers.get(model)
-        if helper_class is None:
-            raise ProviderError(f"No provider helper registered for model '{model}'")
-        return helper_class()
-
-    def list_supported_models(self) -> List[str]:
-        """Return a list of supported provider names."""
-        return list(self._helpers.keys())
-
-    @classmethod
-    def get_supported_providers(cls) -> List[str]:
-        """Get list of supported providers based on default helpers."""
-        return list(cls._default_helpers.keys())
+        provider_class = self._providers.get(model)
+        if provider_class is None:
+            raise ProviderError(f"No provider registered for model '{model}'")
+        return provider_class()
