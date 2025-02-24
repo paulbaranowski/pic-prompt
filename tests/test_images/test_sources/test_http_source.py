@@ -4,6 +4,7 @@ from prompt_any.images.sources.http_source import HttpSource
 from prompt_any.images.errors import ImageSourceError
 import os
 import mimetypes
+import aiohttp
 
 REAL_IMAGE_URL = "https://hstwhmjryocigvbffybk.supabase.co/storage/v1/object/public/promptfoo_images/all-pro-dadfs.PNG"
 
@@ -34,6 +35,34 @@ class DummyAiohttpClientSessionForTest:
 @pytest.fixture
 def http_source():
     return HttpSource(async_http_client=DummyAiohttpClientSessionForTest())
+
+
+class DummyAiohttpResponse:
+    def __init__(self, status, content):
+        self.status = status
+        self._content = content
+
+    async def read(self):
+        return self._content
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        pass
+
+
+class DummyAiohttpClientSession:
+    def __init__(self, response_code=200, side_effect=None):
+        self.response_code = response_code
+        self.side_effect = side_effect
+
+    def get(self, url, timeout=30):
+        if self.side_effect:
+            raise self.side_effect
+        if "error" in url:
+            return DummyAiohttpResponse(self.response_code, b"")
+        return DummyAiohttpResponse(self.response_code, b"async data")
 
 
 def test_get_image_success(monkeypatch, http_source):
@@ -77,28 +106,6 @@ def test_get_real_image_sync():
 # Async tests
 
 
-class DummyAiohttpResponse:
-    def __init__(self, status, content):
-        self.status = status
-        self._content = content
-
-    async def read(self):
-        return self._content
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, exc_type, exc, tb):
-        pass
-
-
-class DummyAiohttpClientSession:
-    def get(self, url, timeout=30):
-        if "error" in url:
-            return DummyAiohttpResponse(404, b"")
-        return DummyAiohttpResponse(200, b"async data")
-
-
 @pytest.mark.asyncio
 async def test_get_image_async_success():
     dummy_session = DummyAiohttpClientSession()
@@ -109,7 +116,7 @@ async def test_get_image_async_success():
 
 @pytest.mark.asyncio
 async def test_get_image_async_http_error():
-    dummy_session = DummyAiohttpClientSession()
+    dummy_session = DummyAiohttpClientSession(response_code=404)
     http_source = HttpSource(async_http_client=dummy_session)
     with pytest.raises(ImageSourceError) as err:
         await http_source.get_image_async("http://example.com/error")
@@ -146,3 +153,102 @@ def test_get_media_type_unknown():
     http = HttpSource()
     media_type = http.get_media_type("http://example.com/image.unknown")
     assert media_type is None
+
+
+def test_get_image_403_error(mocker):
+    """Test that get_image raises appropriate error on 403 response"""
+    mock_response = mocker.Mock()
+    mock_response.status_code = 403
+    mock_get = mocker.patch("requests.get", return_value=mock_response)
+
+    http_source = HttpSource()
+    with pytest.raises(ImageSourceError) as err:
+        http_source.get_image("http://example.com/forbidden")
+
+    mock_get.assert_called_once_with(
+        "http://example.com/forbidden",
+        timeout=30,
+        headers={"User-Agent": "prompt-any/1.0"},
+    )
+    assert "Access forbidden (HTTP 403)" in str(err.value)
+    assert "authentication or have rate limiting" in str(err.value)
+
+
+def test_get_image_500_error(mocker):
+    """Test that get_image raises appropriate error on 500 response"""
+    mock_response = mocker.Mock()
+    mock_response.status_code = 500
+    mock_get = mocker.patch("requests.get", return_value=mock_response)
+
+    http_source = HttpSource()
+    with pytest.raises(ImageSourceError) as err:
+        http_source.get_image("http://example.com/server-error")
+
+    mock_get.assert_called_once_with(
+        "http://example.com/server-error",
+        timeout=30,
+        headers={"User-Agent": "prompt-any/1.0"},
+    )
+    assert "HTTP 500" in str(err.value)
+
+
+def test_get_image_request_exception(mocker):
+    """Test that get_image raises appropriate error on RequestException"""
+    mock_get = mocker.patch(
+        "requests.get",
+        side_effect=requests.exceptions.RequestException("Connection error"),
+    )
+
+    http_source = HttpSource()
+    with pytest.raises(ImageSourceError) as err:
+        http_source.get_image("http://example.com/error")
+
+    mock_get.assert_called_once_with(
+        "http://example.com/error",
+        timeout=30,
+        headers={"User-Agent": "prompt-any/1.0"},
+    )
+    assert "Network error downloading" in str(err.value)
+    assert "Connection error" in str(err.value)
+
+
+@pytest.mark.asyncio
+async def test_get_image_async_403_error():
+    """Test that get_image_async raises appropriate error on 403 response"""
+
+    session = DummyAiohttpClientSession(response_code=403)
+
+    http_source = HttpSource(async_http_client=session)
+    with pytest.raises(ImageSourceError) as err:
+        await http_source.get_image_async("http://example.com/forbidden")
+
+    assert "Access forbidden (HTTP 403)" in str(err.value)
+    assert "authentication or have rate limiting" in str(err.value)
+
+
+@pytest.mark.asyncio
+async def test_get_image_async_500_error():
+    """Test that get_image_async raises appropriate error on 500 response"""
+
+    session = DummyAiohttpClientSession(response_code=500)
+
+    http_source = HttpSource(async_http_client=session)
+    with pytest.raises(ImageSourceError) as err:
+        await http_source.get_image_async("http://example.com/server-error")
+
+    assert "HTTP 500" in str(err.value)
+
+
+@pytest.mark.asyncio
+async def test_get_image_async_client_error(mocker):
+    """Test that get_image_async raises appropriate error on ClientError"""
+    session = DummyAiohttpClientSession(
+        side_effect=aiohttp.ClientError("Connection error")
+    )
+
+    http_source = HttpSource(async_http_client=session)
+    with pytest.raises(ImageSourceError) as err:
+        await http_source.get_image_async("http://example.com/error")
+
+    assert "Network error downloading" in str(err.value)
+    assert "Connection error" in str(err.value)

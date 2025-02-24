@@ -100,8 +100,6 @@ class HttpSource(ImageSource):
             raise e
         except aiohttp.ClientError as e:
             raise ImageSourceError(f"Network error downloading {url}: {e}")
-        except Exception as e:
-            raise ImageSourceError(f"Failed to download {url}: {e}")
 
     def can_handle(self, path: str) -> bool:
         """

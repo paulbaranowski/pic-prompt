@@ -2,6 +2,7 @@ import pytest
 from io import BytesIO
 from PIL import Image
 from prompt_any.images.image_data import ImageData
+from prompt_any.core.errors import ImageProcessingError
 
 
 @pytest.fixture
@@ -70,6 +71,31 @@ def sample_image_bytes():
     img_bytes = BytesIO()
     img.save(img_bytes, format="JPEG")
     return img_bytes.getvalue()
+
+
+def test_binary_data_invalid_image():
+    """Test that setting invalid binary data raises ImageProcessingError"""
+    image_data = ImageData("test.jpg")
+
+    with pytest.raises(ImageProcessingError) as exc_info:
+        image_data.binary_data = b"not a valid image"
+
+    assert "Error creating image object" in str(exc_info.value)
+
+
+def test_get_dimensions(image_data, sample_image_bytes):
+    """Test that get_dimensions returns correct image dimensions"""
+    # Set the binary data using the sample image fixture
+    image_data.binary_data = sample_image_bytes
+
+    # Get dimensions
+    width, height = image_data.get_dimensions()
+
+    # Sample image is 100x100 from fixture
+    assert width == 100
+    assert height == 100
+    assert isinstance(width, int)
+    assert isinstance(height, int)
 
 
 # def test_resample_image(image_data, sample_image_bytes):

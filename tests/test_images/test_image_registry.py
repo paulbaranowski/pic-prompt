@@ -74,3 +74,19 @@ def test_add_provider_encoded_image_nonexistent(image_registry):
         image_registry.add_provider_encoded_image(
             "nonexistent.jpg", "provider", "encoded_data"
         )
+
+
+def test_clear(image_registry, sample_image_data):
+    """Test clearing the image registry"""
+    # Add some test data
+    image_registry.add_image_data(sample_image_data)
+    assert image_registry.num_images() == 1
+
+    # Clear the registry
+    image_registry.clear()
+
+    # Verify registry is empty
+    assert image_registry.num_images() == 0
+    assert image_registry.get_all_image_paths() == []
+    assert image_registry.get_all_image_data() == []
+    assert image_registry.get_image_data("test/image.jpg") is None
