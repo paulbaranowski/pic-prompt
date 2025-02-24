@@ -57,6 +57,56 @@ def test_format_prompt_basic(provider, basic_config):
     assert parsed["messages"][1]["role"] == "user"
 
 
+def test_format_prompt_with_images(provider, basic_config):
+    messages = [
+        PromptMessage(
+            role="user",
+            content=[
+                PromptContent(type="text", content="What's in this image?"),
+                PromptContent(type="image", content="http://example.com/image1.jpg"),
+                PromptContent(type="image", content="http://example.com/image2.jpg"),
+            ],
+        ),
+        PromptMessage(
+            role="assistant",
+            content=[PromptContent(type="text", content="I see two images")],
+        ),
+    ]
+
+    result = provider.format_prompt(messages, basic_config, ImageRegistry())
+    parsed = json.loads(result)
+
+    assert len(parsed["messages"]) == 2
+
+    # Check user message with images
+    user_message = parsed["messages"][0]
+    assert user_message["role"] == "user"
+    assert len(user_message["content"]) == 3
+
+    # Check text content
+    assert user_message["content"][0]["type"] == "text"
+    assert user_message["content"][0]["text"] == "What's in this image?"
+
+    # Check image contents
+    assert user_message["content"][1]["type"] == "image_url"
+    assert (
+        user_message["content"][1]["image_url"]["url"]
+        == "http://example.com/image1.jpg"
+    )
+    assert user_message["content"][2]["type"] == "image_url"
+    assert (
+        user_message["content"][2]["image_url"]["url"]
+        == "http://example.com/image2.jpg"
+    )
+
+    # Check assistant message
+    assistant_message = parsed["messages"][1]
+    assert assistant_message["role"] == "assistant"
+    assert len(assistant_message["content"]) == 1
+    assert assistant_message["content"][0]["type"] == "text"
+    assert assistant_message["content"][0]["text"] == "I see two images"
+
+
 def test_format_prompt_with_json_schema(provider, basic_config):
     messages = [
         PromptMessage(

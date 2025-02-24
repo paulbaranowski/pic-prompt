@@ -59,6 +59,58 @@ def test_format_prompt_basic(provider, basic_config):
     assert parsed["messages"][1]["role"] == "user"
 
 
+def test_format_prompt_with_images(provider, basic_config):
+    messages = [
+        PromptMessage(
+            role="user",
+            content=[
+                PromptContent(type="text", content="What's in this image?"),
+                PromptContent(type="image", content="test_image"),
+            ],
+        ),
+        PromptMessage(
+            role="assistant",
+            content=[PromptContent(type="text", content="I see an image")],
+        ),
+    ]
+
+    registry = ImageRegistry()
+    image_data = ImageData(
+        image_path="test_image",
+        media_type="image/jpeg",
+        binary_data=create_test_image(),
+    )
+    image_data.add_provider_encoded_image(provider.get_provider_name(), "encoded_data")
+    registry.add_image_data(image_data)
+
+    result = provider.format_prompt(messages, basic_config, registry)
+    parsed = json.loads(result)
+
+    assert len(parsed["messages"]) == 2
+
+    # Check user message with image
+    user_message = parsed["messages"][0]
+    assert user_message["role"] == "user"
+    assert len(user_message["content"]) == 2
+
+    # Check text content
+    assert user_message["content"][0]["type"] == "text"
+    assert user_message["content"][0]["text"] == "What's in this image?"
+
+    # Check image content
+    assert user_message["content"][1]["type"] == "image"
+    assert user_message["content"][1]["source"]["type"] == "base64"
+    assert user_message["content"][1]["source"]["media_type"] == "image/jpeg"
+    assert user_message["content"][1]["source"]["data"] == "encoded_data"
+
+    # Check assistant message
+    assistant_message = parsed["messages"][1]
+    assert assistant_message["role"] == "assistant"
+    assert len(assistant_message["content"]) == 1
+    assert assistant_message["content"][0]["type"] == "text"
+    assert assistant_message["content"][0]["text"] == "I see an image"
+
+
 def test_format_prompt_with_json_schema(provider, basic_config):
     messages = [
         PromptMessage(
