@@ -4,7 +4,7 @@ from prompt_any.providers import ProviderFactory, Provider
 from prompt_any.images import ImageDownloader
 from prompt_any.images.image_registry import ImageRegistry
 from prompt_any.providers.provider_names import ProviderNames
-from prompt_any.images.errors import ImageSourceError
+from prompt_any.images.errors import ImageSourceError, ImageDownloadError
 
 
 class PromptBuilder:
@@ -45,6 +45,8 @@ class PromptBuilder:
 
         # This is the cache of all the prompts
         self.prompts: Dict[str, str] = {}
+
+        self.image_downloader = ImageDownloader()
 
     # Message Methods
     def add_system_message(self, message: str) -> None:
@@ -99,25 +101,49 @@ class PromptBuilder:
                 return True
         return False
 
-    def download_image_data(self) -> ImageRegistry:
+    def download_image_data(
+        self, downloader=None, raise_on_error=True
+    ) -> ImageRegistry:
         """
         Downloads images if needed and stores them in the image registry.
 
-        Only downloads images if they haven't already been downloaded and if at least one provider
-        requires downloaded images. The downloaded images are stored in the image registry for reuse.
+        Args:
+            downloader: Optional ImageDownloader instance for testing. Uses self.image_downloader if None.
 
         Returns:
             ImageRegistry: The registry containing all downloaded image data
+
+        Raises:
+            ImageDownloadError: If any critical image downloads fail
         """
-        if self.image_registry.num_images() == 0:
-            if self._should_download_images():
-                for image_data in self.image_registry.get_all_image_data():
-                    try:
-                        image_data = ImageDownloader().download(image_data.image_path)
-                        # replace the old image data with the new one
-                        self.image_registry.add_image_data(image_data)
-                    except ImageSourceError as e:
-                        print(f"Error downloading image {image_data.image_path}: {e}")
+        if self.image_registry.num_images() > 0:
+            if not self._should_download_images():
+                return self.image_registry
+
+            downloader = downloader or self.image_downloader
+            errors = []
+
+            for image_data in self.image_registry.get_all_image_data():
+                if image_data.binary_data is not None:
+                    continue
+                try:
+                    image_data = downloader.download(image_data.image_path)
+                    # add is the same as update
+                    self.image_registry.add_image_data(image_data)
+                except ImageSourceError as e:
+                    errors.append((image_data.image_path, str(e)))
+
+            if errors:
+                error_messages = "\n".join(
+                    f"- {path}: {error}" for path, error in errors
+                )
+                if raise_on_error:
+                    raise ImageDownloadError(
+                        f"Failed to download images:\n{error_messages}"
+                    )
+                else:
+                    print(f"Failed to download images:\n{error_messages}")
+                    return self.image_registry
         return self.image_registry
 
     async def download_image_data_async(self) -> ImageRegistry:

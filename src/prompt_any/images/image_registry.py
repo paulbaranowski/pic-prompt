@@ -36,3 +36,6 @@ class ImageRegistry:
 
     def has_image(self, image_path: str) -> bool:
         return image_path in self.image_data
+
+    def clear(self):
+        self.image_data = {}

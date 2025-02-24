@@ -4,6 +4,7 @@ from prompt_any.core import PromptConfig
 from prompt_any.core.message_role import MessageRole
 from prompt_any.core.message_type import MessageType
 import os
+from prompt_any.images.errors import ImageSourceError, ImageDownloadError
 
 
 @pytest.fixture
@@ -166,30 +167,47 @@ def test_should_download_images(builder):
 
 def test_download_image_data(builder, mocker):
     """Test downloading image data"""
-    # Mock ImageDownloader.download to avoid actual downloads
-    mock_download = mocker.patch("prompt_any.images.ImageDownloader.download")
-    mock_download.return_value = mocker.Mock(image_path="test.jpg", binary_data=b"test")
+    # Mock the ImageDownloader instance
+    mock_downloader = mocker.Mock()
+    mock_image_data = mocker.Mock(
+        image_path="test.jpg",
+        binary_data=b"test",
+        get_provider_encoded_image=lambda x: None,
+    )
+    mock_downloader.download.return_value = mock_image_data
+
+    # Mock provider and its image config
+    mock_provider = mocker.Mock()
+    mock_provider.get_image_config.return_value = mocker.Mock(needs_download=True)
+    mocker.patch.object(
+        builder, "get_providers", return_value={"gemini": mock_provider}
+    )
 
     # Add image message and config requiring download
     builder.add_image_message("test.jpg")
     config = PromptConfig.default()
-    config.provider_name = "gemini"
+    config.provider_name = "gemini"  # Gemini requires image download
     builder.add_config(config)
 
+    # Verify initial state - empty ImageData object exists but has no binary data
+    assert builder.image_registry.has_image("test.jpg")
+    initial_data = builder.image_registry.get_image_data("test.jpg")
+    assert initial_data.binary_data is None
+
     # Download images
-    registry = builder.download_image_data()
+    registry = builder.download_image_data(downloader=mock_downloader)
 
     # Verify download was called
-    mock_download.assert_called_once_with("test.jpg")
+    mock_downloader.download.assert_called_once()
 
-    # Verify image was added to registry
-    assert registry.num_images() == 1
-    assert registry.has_image("test.jpg")
+    # Verify image data was updated in registry with downloaded content
+    downloaded_data = registry.get_image_data("test.jpg")
+    assert downloaded_data.binary_data == b"test"
 
-    # Calling again should not re-download
-    mock_download.reset_mock()
-    builder.download_image_data()
-    mock_download.assert_not_called()
+    # Calling again should not re-download since images already have binary data
+    mock_downloader.download.reset_mock()
+    builder.download_image_data(downloader=mock_downloader)
+    mock_downloader.download.assert_not_called()
 
 
 @pytest.mark.integration
@@ -239,10 +257,10 @@ def test_download_real_image_with_403_error_integration(builder):
     builder.add_config(config)
 
     # Download image
-    registry = builder.download_image_data()
+    registry = builder.download_image_data(raise_on_error=False)
 
-    # Verify image was downloaded and added to registry
-    assert registry.num_images() == 0
+    # Verify image was not downloaded
+    assert registry.get_binary_data(wiki_image) is None
 
 
 def test_encode_image_data(builder, mocker):
@@ -276,7 +294,7 @@ def test_encode_image_data(builder, mocker):
     registry = builder.encode_image_data()
 
     # Verify provider processed image
-    mock_provider.process_image.assert_called_once_with(b"test")
+    mock_provider.process_image.assert_called_once_with(mock_image_data)
 
     # Verify encoded data was added to registry
     image_data = registry.get_image_data("test.jpg")
@@ -352,3 +370,33 @@ def test_get_content_for(builder, mocker):
     mock_provider.format_messages.assert_called_once_with(
         builder.messages, builder.image_registry
     )
+
+
+def test_download_image_data_handles_errors(builder, mocker):
+    """Test that download_image_data properly handles and reports download errors"""
+    # Mock downloader that always fails
+    mock_downloader = mocker.Mock()
+    mock_downloader.download.side_effect = ImageSourceError("Download failed")
+
+    # Mock provider that requires downloads
+    mock_provider = mocker.Mock()
+    mock_provider.get_image_config.return_value = mocker.Mock(needs_download=True)
+    mocker.patch.object(
+        builder, "get_providers", return_value={"gemini": mock_provider}
+    )
+
+    # Add test images and config
+    builder.add_image_message("test1.jpg")
+    builder.add_image_message("test2.jpg")
+    config = PromptConfig.default()
+    config.provider_name = "gemini"
+    builder.add_config(config)
+
+    # Verify error is raised with details about failed downloads
+    with pytest.raises(ImageDownloadError) as exc_info:
+        builder.download_image_data(downloader=mock_downloader)
+
+    error_msg = str(exc_info.value)
+    assert "test1.jpg" in error_msg
+    assert "test2.jpg" in error_msg
+    assert "Download failed" in error_msg
