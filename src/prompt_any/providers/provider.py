@@ -13,6 +13,9 @@ from prompt_any.core.prompt_content import PromptContent
 from prompt_any.images.image_registry import ImageRegistry
 from prompt_any.providers.provider_names import ProviderNames
 from prompt_any.images.image_data import ImageData
+from prompt_any.utils.logger import setup_logger
+
+logger = setup_logger(__name__)
 
 
 class Provider(ABC):
@@ -66,7 +69,10 @@ class Provider(ABC):
         pass
 
     def format_messages(
-        self, messages: List[PromptMessage], all_image_data: ImageRegistry
+        self,
+        messages: List[PromptMessage],
+        all_image_data: ImageRegistry,
+        preview=False,
     ) -> str:
         """
         Format a list of messages based on the provider's requirements.
@@ -75,13 +81,13 @@ class Provider(ABC):
         for message in messages:
             msg_dict = {
                 "role": message.role,
-                "content": self.format_content(message, all_image_data),
+                "content": self.format_content(message, all_image_data, preview),
             }
             prompt_messages.append(msg_dict)
         return prompt_messages
 
     def format_content(
-        self, message: PromptMessage, all_image_data: ImageRegistry
+        self, message: PromptMessage, all_image_data: ImageRegistry, preview=False
     ) -> str:
         """
         Format all content based on the provider's requirements.
@@ -90,7 +96,7 @@ class Provider(ABC):
         for content in message.content:
             if content.type == MessageType.IMAGE:
                 formatted_content.append(
-                    self._format_content_image(content, all_image_data)
+                    self._format_content_image(content, all_image_data, preview)
                 )
             elif content.type == MessageType.TEXT:
                 formatted_content.append(self._format_content_text(content))
@@ -98,7 +104,7 @@ class Provider(ABC):
 
     @abstractmethod
     def _format_content_image(
-        self, content: PromptContent, all_image_data: ImageRegistry
+        self, content: PromptContent, all_image_data: ImageRegistry, preview=False
     ) -> str:
         """
         Format an image message based on the provider's requirements.
@@ -130,16 +136,31 @@ class Provider(ABC):
             ImageData: The processed image data with encoded versions stored
         """
         if self.get_image_config().requires_base64:
+            logger.info(f"Encoding image data for {image_data.image_path}")
             encoded_data = self.encode_image(image_data.binary_data)
             if len(encoded_data) > self.get_image_config().max_size:
+                logger.info(
+                    f"Encoded data is too large({len(encoded_data)} bytes) for {image_data.image_path}. Resampling..."
+                )
                 resampled_image = image_data.resample_image()
                 encoded_data = self.encode_image(resampled_image)
+                logger.info(f"Encoded data after resampling: {len(encoded_data)} bytes")
                 # if that didn't work, try resizing
                 if len(encoded_data) > self.get_image_config().max_size:
+                    logger.info(
+                        f"Encoded data is still too large for {image_data.image_path}. Resizing..."
+                    )
                     resized_image = image_data.resize(self.get_image_config().max_size)
                     encoded_data = self.encode_image(resized_image)
+                    logger.info(
+                        f"Encoded data after resizing: {len(encoded_data)} bytes"
+                    )
             image_data.add_provider_encoded_image(
                 self.get_provider_name(), encoded_data
+            )
+        else:
+            logger.info(
+                f"Not encoding image data for {image_data} due to provider image config."
             )
         return image_data
 

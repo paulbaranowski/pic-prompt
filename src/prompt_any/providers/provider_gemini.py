@@ -31,8 +31,8 @@ class ProviderGemini(Provider):
         Return Gemini's default image configuration.
         """
         return ImageConfig(
-            requires_base64=False,
-            max_size=10_000_000,
+            requires_base64=True,
+            max_size=20_000_000,
             supported_formats=[
                 "image/png",
                 "image/jpeg",
@@ -78,28 +78,52 @@ class ProviderGemini(Provider):
         return json.dumps(prompt)
 
     def format_messages(
-        self, messages: List[PromptMessage], all_image_data: ImageRegistry
+        self,
+        messages: List[PromptMessage],
+        all_image_data: ImageRegistry,
+        preview=False,
     ) -> str:
         """
         Format a list of messages based on Gemini's requirements.
 
         Returns a dictionary with a "contents" key containing a list of formatted content from messages.
         The content formatting is handled by format_content().
+        Image parts are placed first in the formatted contents.
         """
         formatted_contents = []
+        image_messages = []
+        text_messages = []
+
         for message in messages:
-            formatted_content = self.format_content(message, all_image_data)
+            # Check if message contains any images
+            has_images = any(
+                content.type == MessageType.IMAGE for content in message.content
+            )
+            if has_images:
+                image_messages.append(message)
+            else:
+                text_messages.append(message)
+
+        # Format image messages first
+        for message in image_messages:
+            formatted_content = self.format_content(message, all_image_data, preview)
             formatted_contents.append(formatted_content)
+
+        # Then format text messages
+        for message in text_messages:
+            formatted_content = self.format_content(message, all_image_data, preview)
+            formatted_contents.append(formatted_content)
+
         return {"contents": formatted_contents}
 
     def format_content(
-        self, message: PromptMessage, all_image_data: ImageRegistry
+        self, message: PromptMessage, all_image_data: ImageRegistry, preview=False
     ) -> str:
         """
         Format all content based on Gemini's requirements.
         Returns a list containing a single dict with a "parts" key, where parts contains
         the formatted content elements (images and text) in order.
-        For single image + text pairs, ensures text comes after image.
+        Always puts image content before text content.
         """
         parts = []
         image_parts = []
@@ -107,7 +131,9 @@ class ProviderGemini(Provider):
 
         for content in message.content:
             if content.type == MessageType.IMAGE:
-                image_parts.append(self._format_content_image(content, all_image_data))
+                image_parts.append(
+                    self._format_content_image(content, all_image_data, preview)
+                )
             elif content.type == MessageType.TEXT:
                 text_parts.append(self._format_content_text(content))
 
@@ -118,11 +144,10 @@ class ProviderGemini(Provider):
             parts = image_parts + text_parts
         else:
             parts = text_parts + image_parts
-
-        return {"parts": parts}
+        return {"role": message.role, "parts": parts}
 
     def _format_content_image(
-        self, content: PromptContent, all_image_data: ImageRegistry
+        self, content: PromptContent, all_image_data: ImageRegistry, preview=False
     ) -> str:
         """
         Format an image content based on Gemini's requirements.
@@ -137,7 +162,7 @@ class ProviderGemini(Provider):
         return {
             "inline_data": {
                 "mime_type": image_data.media_type,
-                "data": encoded_data,
+                "data": f"{len(encoded_data)} bytes" if preview else encoded_data,
             },
         }
 

@@ -5,6 +5,9 @@ from prompt_any.images import ImageDownloader
 from prompt_any.images.image_registry import ImageRegistry
 from prompt_any.providers.provider_names import ProviderNames
 from prompt_any.images.errors import ImageSourceError, ImageDownloadError
+from prompt_any.utils.logger import setup_logger
+
+logger = setup_logger(__name__)
 
 
 class PromptBuilder:
@@ -194,8 +197,11 @@ class PromptBuilder:
 
         The formatted prompts are stored internally and can be retrieved using get_prompt_for().
         """
+        logger.info("Downloading image data")
         self.download_image_data()
+        logger.info("Encoding image data")
         self.encode_image_data()
+        logger.info("Formatting prompts")
         for provider in self.get_providers().values():
             self.prompts[provider.get_provider_name()] = provider.format_prompt(
                 self.messages,
@@ -208,11 +214,11 @@ class PromptBuilder:
             self.build()
         return self.prompts[provider_name]
 
-    def get_content_for(self, provider_name: str) -> str:
+    def get_content_for(self, provider_name: str, preview=False) -> str:
         if len(self.prompts) == 0:
             self.build()
         provider = self.get_providers()[provider_name]
-        return provider.format_messages(self.messages, self.image_registry)
+        return provider.format_messages(self.messages, self.image_registry, preview)
 
     def clear(self) -> None:
         self.messages = []

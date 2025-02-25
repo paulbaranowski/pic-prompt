@@ -15,6 +15,18 @@ class ImageData:
         self.media_type: str = media_type
         self.provider_encoded_images: Dict[str, str] = {}
 
+    def __repr__(self) -> str:
+        if len(self.provider_encoded_images) == 0:
+            encoded_images = "none"
+        else:
+            encoded_images = ", ".join(
+                [
+                    f"{k}: {len(v)} bytes"
+                    for k, v in self.provider_encoded_images.items()
+                ]
+            )
+        return f"ImageData(image_path={self.image_path}, binary_data={len(self.binary_data)}, media_type={self.media_type}, encoded_images={encoded_images})"
+
     @property
     def image_path(self) -> str:
         return self._image_path

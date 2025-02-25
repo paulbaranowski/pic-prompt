@@ -39,3 +39,6 @@ class ImageRegistry:
 
     def clear(self):
         self.image_data = {}
+
+    def __repr__(self) -> str:
+        return f"ImageRegistry(image_data={self.image_data})"
