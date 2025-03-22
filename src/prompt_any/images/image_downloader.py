@@ -11,6 +11,7 @@ from prompt_any.images.sources.local_file_source import LocalFileSource
 from prompt_any.images.sources.http_source import HttpSource
 from prompt_any.images.sources.s3_source import S3Source
 from prompt_any.images.image_data import ImageData
+from prompt_any.core.image_config import ImageConfigRegistry
 
 
 class ImageDownloader:
@@ -19,7 +20,7 @@ class ImageDownloader:
     def __init__(self, s3_client: Optional[boto3.client] = None) -> None:
         """Initialize the ImageHandler with an empty dictionary of registered sources."""
         self.sources: Dict[str, ImageSource] = {}
-
+        self.image_config_registry = ImageConfigRegistry()
         # Automatically register built-in image sources:
         # Register local and HTTP sources
         self.register_source("file", LocalFileSource())
@@ -54,7 +55,7 @@ class ImageDownloader:
         """
         return self.sources[protocol]
 
-    def _get_source_for_path(self, path: str) -> ImageSource:
+    def get_source_for_path(self, path: str) -> ImageSource:
         """
         Determine which registered image source can handle the given path.
 
@@ -76,6 +77,15 @@ class ImageDownloader:
             f"No registered image source can handle path: {path}"
         )
 
+    def is_media_type_supported(self, provider_name: str) -> bool:
+        """
+        Check if the media type is supported by the image config registry.
+        """
+        return (
+            self.media_type
+            in self.image_config_registry.get_config(provider_name).supported_formats
+        )
+
     def download(self, path: str) -> ImageData:
         """
         Download and process an image synchronously.
@@ -92,12 +102,20 @@ class ImageDownloader:
         Raises:
             ImageProcessingError: If there is an error downloading or processing the image.
         """
-        source = self._get_source_for_path(path)
+        source = self.get_source_for_path(path)
         binary_data = source.get_image(path)
         media_type = source.get_media_type(path)
         image_data = ImageData(
             image_path=path, binary_data=binary_data, media_type=media_type
         )
+        return image_data
+
+    def download_and_encode(
+        self, path: str, provider_name: str = "openai"
+    ) -> ImageData:
+        image_data = self.download(path)
+        config = self.image_config_registry.get_config(provider_name)
+        image_data.resize_and_encode(config.max_size, provider_name)
         return image_data
 
     async def download_async(self, path: str) -> ImageData:
@@ -116,7 +134,7 @@ class ImageDownloader:
         Raises:
             ImageProcessingError: If there is an error downloading or processing the image.
         """
-        source = self._get_source_for_path(path)
+        source = self.get_source_for_path(path)
         binary_data = await source.get_image_async(path)
         media_type = source.get_media_type(path)
         return ImageData(

@@ -90,3 +90,14 @@ def test_clear(image_registry, sample_image_data):
     assert image_registry.get_all_image_paths() == []
     assert image_registry.get_all_image_data() == []
     assert image_registry.get_image_data("test/image.jpg") is None
+
+
+def test_repr(image_registry, sample_image_data):
+    """Test string representation of image registry"""
+    # Empty registry
+    assert repr(image_registry) == "ImageRegistry(image_data={})"
+
+    # Add test data
+    image_registry.add_image_data(sample_image_data)
+    # Just verify it contains the image path
+    assert "test/image.jpg" in repr(image_registry)

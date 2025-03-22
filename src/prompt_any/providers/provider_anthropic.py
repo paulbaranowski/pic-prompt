@@ -61,7 +61,7 @@ class ProviderAnthropic(Provider):
         return {"type": "text", "text": content.data}
 
     def _format_content_image(
-        self, content: PromptContent, all_image_data: ImageRegistry
+        self, content: PromptContent, all_image_data: ImageRegistry, preview=False
     ) -> str:
         """
         Format an image content based on Anthropic's requirements.
@@ -78,12 +78,6 @@ class ProviderAnthropic(Provider):
             "source": {
                 "type": "base64",
                 "media_type": image_data.media_type,
-                "data": encoded_data,
+                "data": f"{len(encoded_data)} bytes" if preview else encoded_data,
             },
         }
-
-    def encode_image(self, binary_data: bytes) -> str:
-        """
-        Encode an image to base64 as required by Anthropic's API.
-        """
-        return super().encode_image(binary_data)

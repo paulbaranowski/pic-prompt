@@ -60,7 +60,7 @@ class ProviderGemini(Provider):
         formatted_messages = self.format_messages(messages, all_image_data)
 
         prompt = {
-            "contents": formatted_messages["contents"],
+            "contents": formatted_messages,
             "generationConfig": {
                 "maxOutputTokens": prompt_config.max_tokens,
                 "temperature": prompt_config.temperature,
@@ -106,45 +106,20 @@ class ProviderGemini(Provider):
 
         # Format image messages first
         for message in image_messages:
-            formatted_content = self.format_content(message, all_image_data, preview)
-            formatted_contents.append(formatted_content)
+            for content in message.content:
+                formatted_content = self._format_content_image(
+                    content, all_image_data, preview
+                )
+                formatted_contents.append(formatted_content)
 
         # Then format text messages
         for message in text_messages:
-            formatted_content = self.format_content(message, all_image_data, preview)
-            formatted_contents.append(formatted_content)
+            # formatted_content = self.format_content(message, all_image_data, preview)
+            for content in message.content:
+                formatted_content = self._format_content_text(content)
+                formatted_contents.append(formatted_content)
 
-        return {"contents": formatted_contents}
-
-    def format_content(
-        self, message: PromptMessage, all_image_data: ImageRegistry, preview=False
-    ) -> str:
-        """
-        Format all content based on Gemini's requirements.
-        Returns a list containing a single dict with a "parts" key, where parts contains
-        the formatted content elements (images and text) in order.
-        Always puts image content before text content.
-        """
-        parts = []
-        image_parts = []
-        text_parts = []
-
-        for content in message.content:
-            if content.type == MessageType.IMAGE:
-                image_parts.append(
-                    self._format_content_image(content, all_image_data, preview)
-                )
-            elif content.type == MessageType.TEXT:
-                text_parts.append(self._format_content_text(content))
-
-        # If exactly one image and one text, put text after image
-        # From the Gemini API docs:
-        # "For best results, If using a single image, place the text prompt after the image."
-        if len(image_parts) == 1 and len(text_parts) == 1:
-            parts = image_parts + text_parts
-        else:
-            parts = text_parts + image_parts
-        return {"role": message.role, "parts": parts}
+        return formatted_contents
 
     def _format_content_image(
         self, content: PromptContent, all_image_data: ImageRegistry, preview=False

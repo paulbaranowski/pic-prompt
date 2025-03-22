@@ -347,7 +347,7 @@ def test_get_content_for(builder, mocker):
     mock_provider.provider_name = "gemini"
     mock_provider.get_provider_name.return_value = "gemini"
     mock_provider.format_messages.return_value = "formatted content"
-    mock_provider.get_image_config.return_value = mocker.Mock(needs_download=False)
+    mock_provider.get_image_config.return_value = mocker.Mock(needs_download=True)
 
     mocker.patch.object(
         builder, "get_providers", return_value={"gemini": mock_provider}
@@ -368,7 +368,7 @@ def test_get_content_for(builder, mocker):
     # Verify content was formatted
     assert content == "formatted content"
     mock_provider.format_messages.assert_called_once_with(
-        builder.messages, builder.image_registry
+        builder.messages, builder.image_registry, False
     )
 
 
@@ -400,3 +400,36 @@ def test_download_image_data_handles_errors(builder, mocker):
     assert "test1.jpg" in error_msg
     assert "test2.jpg" in error_msg
     assert "Download failed" in error_msg
+
+
+@pytest.mark.asyncio
+async def test_download_image_data_async(builder, mocker):
+    """Test asynchronous image downloading"""
+    # Mock async download method
+    mock_download = mocker.patch("prompt_any.images.ImageDownloader.download_async")
+    mock_download.return_value = mocker.Mock(image_path="test.jpg", binary_data=b"test")
+
+    # Mock provider that requires downloads
+    mock_provider = mocker.Mock()
+    mock_provider.get_image_config.return_value = mocker.Mock(needs_download=True)
+    mocker.patch.object(
+        builder, "get_providers", return_value={"gemini": mock_provider}
+    )
+
+    # Add test image and config
+    builder.add_image_message("test.jpg")
+    config = PromptConfig.default()
+    config.provider_name = "gemini"
+    builder.add_config(config)
+
+    # Call async download
+    registry = await builder.download_image_data_async()
+
+    # Verify download was attempted
+    mock_download.assert_called_once_with("test.jpg")
+
+    # Verify image was added to registry
+    assert registry.num_images() == 1
+    image_data = registry.get_all_image_data()[0]
+    assert image_data.image_path == "test.jpg"
+    assert image_data.binary_data == b"test"

@@ -4,6 +4,11 @@ Prompt-Any Package
 This package provides core functionality for building prompts and handling images.
 """
 
+from importlib.metadata import version
+
+__version__ = version("prompt-any")
+
+
 from prompt_any.core import (
     PromptMessage,
     MessageType,
@@ -15,8 +20,8 @@ from prompt_any.core import (
     ImageProcessingError,
 )
 from prompt_any.builder import PromptBuilder
+from prompt_any.images import ImageRegistry, ImageData, ImageDownloader
 
-__version__ = "0.1.0"
 
 __all__ = [
     "PromptMessage",
@@ -28,4 +33,7 @@ __all__ = [
     "ProviderError",
     "ImageProcessingError",
     "PromptBuilder",
+    "ImageRegistry",
+    "ImageData",
+    "ImageDownloader",
 ]

@@ -1,6 +1,46 @@
 from typing import List, Dict, Any, Union
 
 
+class ImageConfigRegistry:
+    """
+    ProviderHelper implementation for Anthropic.
+    """
+
+    def __init__(self) -> None:
+        self.configs = {}
+
+        self.configs["anthropic"] = ImageConfig(
+            requires_base64=True,
+            max_size=5_000_000,
+            supported_formats=["image/png", "image/jpeg", "image/gif", "image/webp"],
+            needs_download=True,
+        )
+        self.configs["gemini"] = ImageConfig(
+            requires_base64=True,
+            max_size=20_000_000,
+            supported_formats=[
+                "image/png",
+                "image/jpeg",
+                "image/webp",
+                "image/heic",
+                "image/heif",
+            ],
+            needs_download=True,
+        )
+        self.configs["openai"] = ImageConfig(
+            requires_base64=False,
+            max_size=5_000_000,
+            supported_formats=["image/png", "image/jpeg", "image/jpg"],
+            needs_download=False,
+        )
+
+    def get_config(self, provider_name: str) -> "ImageConfig":
+        """
+        Get the image configuration for a given provider.
+        """
+        return self.configs[provider_name]
+
+
 class ImageConfig:
     """Configuration for model-specific image requirements"""
 

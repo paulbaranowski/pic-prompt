@@ -23,8 +23,8 @@ def image_registry():
 def test_get_image_config(provider):
     config = provider.get_image_config()
     assert isinstance(config, ImageConfig)
-    assert config.requires_base64 is False
-    assert config.max_size == 10_000_000
+    assert config.requires_base64 is True
+    assert config.max_size == 20_000_000
     assert config.supported_formats == [
         "image/png",
         "image/jpeg",
@@ -103,7 +103,7 @@ def test_format_prompt_with_image(provider, image_registry):
     assert "generationConfig" in parsed
     assert len(parsed["contents"]) == 1
 
-    # Check parts ordering - image should come before text
+    # Check parts ordering - image   should come before text
     parts = parsed["contents"][0]["parts"]
     assert len(parts) == 2
 

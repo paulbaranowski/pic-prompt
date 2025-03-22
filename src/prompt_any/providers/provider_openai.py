@@ -74,17 +74,21 @@ class ProviderOpenAI(Provider):
         return json.dumps(prompt)
 
     def _format_content_image(
-        self, content: PromptContent, all_image_data: ImageRegistry
+        self, content: PromptContent, all_image_data: ImageRegistry, preview=False
     ) -> str:
         """
         Format an image content based on the provider's requirements.
 
         Returns a dictionary containing the image URL formatted according to OpenAI's API requirements.
         """
-        if self._image_config.requires_base64:
+        image_data = all_image_data.get_image_data(content.data)
+        print(f"image_data: {image_data}")
+        if self._image_config.requires_base64 or image_data.is_local_image():
+            encoded_data = image_data.get_encoded_data_for(self.get_provider_name())
+            encoded_data = f"{len(encoded_data)} bytes" if preview else encoded_data
             return {
                 "type": "image_url",
-                "image_url": {"url": f"data:image/jpeg;base64,{content.data}"},
+                "image_url": {"url": f"data:image/jpeg;base64,{encoded_data}"},
             }
         else:
             return {

@@ -12,8 +12,11 @@ from prompt_any.images.image_data import ImageData
 
 
 class MockProvider(Provider):
+    def __init__(self):
+        self.image_config = ImageConfig(requires_base64=True, max_size=1000)
+
     def get_image_config(self) -> ImageConfig:
-        return ImageConfig(requires_base64=True, max_size=1000)
+        return self.image_config
 
     def format_prompt(self, messages, prompt_config, all_image_data):
         return "mock formatted prompt"
@@ -98,6 +101,28 @@ def test_process_image(provider):
     encoded_data = processed.get_encoded_data_for(provider.get_provider_name())
     assert isinstance(encoded_data, str)
     assert len(encoded_data) > 0
+
+
+def test_process_image_no_encoding(provider):
+    """Test processing image when provider doesn't require base64 encoding"""
+    # Create test image data
+    img = Image.new("RGB", (50, 50), color="red")
+    img_bytes = BytesIO()
+    img.save(img_bytes, format="PNG")
+    test_image_data = img_bytes.getvalue()
+    test_data = ImageData(
+        "test.png", binary_data=test_image_data, media_type="image/png"
+    )
+
+    # Override provider config to not require encoding
+    provider.image_config.requires_base64 = False
+
+    # Process the image
+    processed = provider.process_image(test_data)
+
+    # Verify no encoded data was stored since encoding wasn't required
+    assert isinstance(processed, ImageData)
+    assert provider.get_provider_name() not in processed.provider_encoded_images
 
 
 def test_process_real_image_greater_than_max_size(provider):

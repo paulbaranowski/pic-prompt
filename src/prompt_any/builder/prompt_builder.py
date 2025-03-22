@@ -1,7 +1,7 @@
 from typing import List, Dict
 from prompt_any.core import PromptMessage, PromptConfig
 from prompt_any.providers import ProviderFactory, Provider
-from prompt_any.images import ImageDownloader
+from prompt_any.images import ImageDownloader, ImageData
 from prompt_any.images.image_registry import ImageRegistry
 from prompt_any.providers.provider_names import ProviderNames
 from prompt_any.images.errors import ImageSourceError, ImageDownloadError
@@ -42,6 +42,7 @@ class PromptBuilder:
         self.provider_factory = ProviderFactory()
 
         self.providers: Dict[str, Provider] = {}
+        self.init_all_providers()
 
         # This is the registry of all the downloaded image data
         self.image_registry = ImageRegistry()
@@ -49,7 +50,28 @@ class PromptBuilder:
         # This is the cache of all the prompts
         self.prompts: Dict[str, str] = {}
 
-        self.image_downloader = ImageDownloader()
+    def init_all_providers(self) -> None:
+        prompt_config_openai = PromptConfig(
+            provider_name="openai",
+            model="gpt-4o",
+            max_tokens=3000,
+            temperature=0.0,
+        )
+        # prompt_config_anthropic = PromptConfig(
+        #     provider_name="anthropic",
+        #     model="claude-3-opus-20240229",
+        #     max_tokens=3000,
+        #     temperature=0.5,
+        # )
+        # prompt_config_gemini = PromptConfig(
+        #     provider_name="gemini",
+        #     model="gemini-2.0-flash",
+        #     max_tokens=3000,
+        #     temperature=0.0,
+        # )
+        self.add_config(prompt_config_openai)
+        # self.add_config(prompt_config_anthropic)
+        # self.add_config(prompt_config_gemini)
 
     # Message Methods
     def add_system_message(self, message: str) -> None:
@@ -72,6 +94,13 @@ class PromptBuilder:
         pm = PromptMessage(role="user")
         pm.add_image(image_path)
         self.image_registry.add_image_path(image_path)
+        self.messages.append(pm)
+
+    def add_image_data(self, image_data: ImageData) -> None:
+        """For the case where you have already downloaded the image data."""
+        self.image_registry.add_image_data(image_data)
+        pm = PromptMessage(role="user")
+        pm.add_image(image_data.image_path)
         self.messages.append(pm)
 
     def add_image_messages(self, image_paths: List[str]) -> None:
@@ -102,75 +131,19 @@ class PromptBuilder:
         for provider in self.get_providers().values():
             if provider.get_image_config().needs_download:
                 return True
+        if self.image_registry.has_local_images():
+            return True
         return False
 
     def download_image_data(
         self, downloader=None, raise_on_error=True
     ) -> ImageRegistry:
-        """
-        Downloads images if needed and stores them in the image registry.
-
-        Args:
-            downloader: Optional ImageDownloader instance for testing. Uses self.image_downloader if None.
-
-        Returns:
-            ImageRegistry: The registry containing all downloaded image data
-
-        Raises:
-            ImageDownloadError: If any critical image downloads fail
-        """
-        if self.image_registry.num_images() > 0:
-            if not self._should_download_images():
-                return self.image_registry
-
-            downloader = downloader or self.image_downloader
-            errors = []
-
-            for image_data in self.image_registry.get_all_image_data():
-                if image_data.binary_data is not None:
-                    continue
-                try:
-                    image_data = downloader.download(image_data.image_path)
-                    # add is the same as update
-                    self.image_registry.add_image_data(image_data)
-                except ImageSourceError as e:
-                    errors.append((image_data.image_path, str(e)))
-
-            if errors:
-                error_messages = "\n".join(
-                    f"- {path}: {error}" for path, error in errors
-                )
-                if raise_on_error:
-                    raise ImageDownloadError(
-                        f"Failed to download images:\n{error_messages}"
-                    )
-                else:
-                    print(f"Failed to download images:\n{error_messages}")
-                    return self.image_registry
+        if self._should_download_images():
+            return self.image_registry.download_image_data(downloader, raise_on_error)
         return self.image_registry
 
     async def download_image_data_async(self) -> ImageRegistry:
-        """
-        Asynchronously downloads images if needed and stores them in the image registry.
-
-        Only downloads images if they haven't already been downloaded and if at least one provider
-        requires downloaded images. The downloaded images are stored in the image registry for reuse.
-
-        Returns:
-            ImageRegistry: The registry containing all downloaded image data
-        """
-        if self.image_registry.num_images() == 0:
-            if self._should_download_images():
-                for image_data in self.image_registry.get_all_image_data():
-                    try:
-                        image_data = await ImageDownloader.download_async(
-                            image_data.image_path
-                        )
-                        # replace the old image data with the new one
-                        self.image_registry.add_image_data(image_data)
-                    except ImageSourceError as e:
-                        print(f"Error downloading image {image_data.image_path}: {e}")
-        return self.image_registry
+        return await self.image_registry.download_image_data_async()
 
     def encode_image_data(self) -> ImageRegistry:
         for image_data in self.image_registry.get_all_image_data():
@@ -193,31 +166,29 @@ class PromptBuilder:
         This method:
         1. Downloads any required image data if needed
         2. Encodes the image data according to each provider's requirements
-        3. Formats the prompt for each provider using their specific helper
 
-        The formatted prompts are stored internally and can be retrieved using get_prompt_for().
+        The formatted prompts can be retrieved using get_content_for().
         """
-        logger.info("Downloading image data")
         self.download_image_data()
-        logger.info("Encoding image data")
         self.encode_image_data()
-        logger.info("Formatting prompts")
-        for provider in self.get_providers().values():
-            self.prompts[provider.get_provider_name()] = provider.format_prompt(
-                self.messages,
-                self.configs[provider.get_provider_name()],
-                self.image_registry,
-            )
+        # for provider in self.get_providers().values():
+        #     self.prompts[provider.get_provider_name()] = provider.format_prompt(
+        #         self.messages,
+        #         self.configs[provider.get_provider_name()],
+        #         self.image_registry,
+        #     )
 
-    def get_prompt_for(self, provider_name: str) -> str:
-        if len(self.prompts) == 0:
-            self.build()
-        return self.prompts[provider_name]
+    # def get_prompt_for(self, provider_name: str) -> str:
+    #     if len(self.prompts) == 0:
+    #         self.build()
+    #     return self.prompts[provider_name]
 
     def get_content_for(self, provider_name: str, preview=False) -> str:
         if len(self.prompts) == 0:
             self.build()
-        provider = self.get_providers()[provider_name]
+        provider = self.get_providers().get(provider_name)
+        if provider is None:
+            raise ValueError(f"Provider {provider_name} not found")
         return provider.format_messages(self.messages, self.image_registry, preview)
 
     def clear(self) -> None:

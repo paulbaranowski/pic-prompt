@@ -80,7 +80,7 @@ def test_binary_data_invalid_image():
     with pytest.raises(ImageProcessingError) as exc_info:
         image_data.binary_data = b"not a valid image"
 
-    assert "Error creating image object" in str(exc_info.value)
+    assert "UnidentifiedImageError opening image" in str(exc_info.value)
 
 
 def test_get_dimensions(image_data, sample_image_bytes):
@@ -98,52 +98,71 @@ def test_get_dimensions(image_data, sample_image_bytes):
     assert isinstance(height, int)
 
 
-# def test_resample_image(image_data, sample_image_bytes):
-#     """Test that resample_image returns valid image data with expected properties"""
-#     # Set the binary data
-#     image_data.binary_data = sample_image_bytes
+def test_repr(image_data, sample_image_bytes):
+    """Test string representation of ImageData"""
+    # Set binary data
+    image_data.binary_data = sample_image_bytes
 
-#     # Transform the image
-#     transformed_bytes = image_data.resample_image()
+    # Add some encoded images
+    image_data.add_provider_encoded_image("provider1", "encoded1")
+    image_data.add_provider_encoded_image("provider2", "encoded2")
 
-#     # Verify the result is valid image data
-#     assert isinstance(transformed_bytes, bytes)
-#     assert len(transformed_bytes) > 0
+    # Get string representation
+    repr_str = repr(image_data)
 
-#     # Open and verify the transformed image
-#     transformed_img = Image.open(BytesIO(transformed_bytes))
-#     assert transformed_img.format == "JPEG"
+    # Verify repr contains key information
+    assert "ImageData" in repr_str
+    assert f"image_path={image_data.image_path}" in repr_str
+    assert f"binary_data={len(sample_image_bytes)}" in repr_str
+    assert f"media_type={image_data.media_type}" in repr_str
+    assert "provider1: 8 bytes" in repr_str  # len("encoded1") = 8
+    assert "provider2: 8 bytes" in repr_str  # len("encoded2") = 8
 
-#     # Original dimensions should be preserved
-#     assert transformed_img.size == (100, 100)
-
-#     # Verify we can read the image data without errors
-#     transformed_img.load()
-
-
-# def test_resample_image_different_formats():
-#     """Test resampling works with different image formats"""
-#     formats = ["PNG", "JPEG"]
-
-#     for fmt in formats:
-#         # Create test image in specified format
-#         img = Image.new("RGB", (50, 50), color="blue")
-#         img_bytes = BytesIO()
-#         img.save(img_bytes, format=fmt)
-
-#         # Create ImageData instance with test image
-#         image_data = ImageData("test.jpg", img_bytes.getvalue(), f"image/{fmt.lower()}")
-
-#         # Transform and verify
-#         transformed = image_data.resample_image()
-#         result_img = Image.open(BytesIO(transformed))
-
-#         assert result_img.format == fmt
-#         assert result_img.size == (50, 50)
+    # Test repr with no encoded images
+    image_data.provider_encoded_images.clear()
+    repr_str = repr(image_data)
+    assert "encoded_images=none" in repr_str
 
 
-# def test_resample_image_invalid_data():
-#     """Test that invalid image data raises appropriate exception"""
-#     image_data = ImageData("test.jpg", b"not an image", "image/jpeg")
-#     with pytest.raises(Exception):
-#         image_data.resample_image()
+def test_resample_image(image_data, sample_image_bytes):
+    """Test that resample_image returns valid image data with expected properties"""
+    # Set the binary data
+    image_data.binary_data = sample_image_bytes
+
+    # Transform the image
+    transformed_bytes = image_data.resample_image()
+
+    # Verify the result is valid image data
+    assert isinstance(transformed_bytes, bytes)
+    assert len(transformed_bytes) > 0
+
+    # Open and verify the transformed image
+    transformed_img = Image.open(BytesIO(transformed_bytes))
+    assert transformed_img.format == "JPEG"
+
+    # Original dimensions should be preserved
+    assert transformed_img.size == (100, 100)
+
+    # Verify we can read the image data without errors
+    transformed_img.load()
+
+
+def test_resample_image_different_formats():
+    """Test resampling works with different image formats"""
+    formats = ["PNG", "JPEG"]
+
+    for fmt in formats:
+        # Create test image in specified format
+        img = Image.new("RGB", (50, 50), color="blue")
+        img_bytes = BytesIO()
+        img.save(img_bytes, format=fmt)
+
+        # Create ImageData instance with test image
+        image_data = ImageData("test.jpg", img_bytes.getvalue(), f"image/{fmt.lower()}")
+
+        # Transform and verify
+        transformed = image_data.resample_image()
+        result_img = Image.open(BytesIO(transformed))
+
+        assert result_img.format == fmt
+        assert result_img.size == (50, 50)
