@@ -37,6 +37,8 @@ class PromptBuilder:
 
         # These are the messages that will be used to build the prompt
         self.messages: List[PromptMessage] = []
+        self.user_messages: List[PromptMessage] = []
+        self.image_messages: List[PromptMessage] = []
 
         # This is the factory that will be used to get the provider helper
         self.provider_factory = ProviderFactory()
@@ -82,7 +84,11 @@ class PromptBuilder:
     def add_user_message(self, message: str) -> None:
         pm = PromptMessage(role="user")
         pm.add_text(message)
-        self.messages.append(pm)
+        self.user_messages.append(pm)
+
+    def set_user_message(self, message: str) -> None:
+        self.user_messages = []
+        self.add_user_message(message)
 
     def add_assistant_message(self, message: str) -> None:
         pm = PromptMessage(role="assistant")
@@ -94,14 +100,14 @@ class PromptBuilder:
         pm = PromptMessage(role="user")
         pm.add_image(image_path)
         self.image_registry.add_image_path(image_path)
-        self.messages.append(pm)
+        self.image_messages.append(pm)
 
     def add_image_data(self, image_data: ImageData) -> None:
         """For the case where you have already downloaded the image data."""
         self.image_registry.add_image_data(image_data)
         pm = PromptMessage(role="user")
         pm.add_image(image_data.image_path)
-        self.messages.append(pm)
+        self.image_messages.append(pm)
 
     def add_image_messages(self, image_paths: List[str]) -> None:
         for path in image_paths:
@@ -126,21 +132,6 @@ class PromptBuilder:
 
     def has_config(self, provider: str) -> bool:
         return provider in self.configs
-
-    def _should_download_images(self) -> bool:
-        for provider in self.get_providers().values():
-            if provider.get_image_config().needs_download:
-                return True
-        if self.image_registry.has_local_images():
-            return True
-        return False
-
-    def download_image_data(
-        self, downloader=None, raise_on_error=True
-    ) -> ImageRegistry:
-        if self._should_download_images():
-            return self.image_registry.download_image_data(downloader, raise_on_error)
-        return self.image_registry
 
     async def download_image_data_async(self) -> ImageRegistry:
         return await self.image_registry.download_image_data_async()
@@ -169,27 +160,17 @@ class PromptBuilder:
 
         The formatted prompts can be retrieved using get_content_for().
         """
-        self.download_image_data()
+        self.image_registry.download_image_data()
         self.encode_image_data()
-        # for provider in self.get_providers().values():
-        #     self.prompts[provider.get_provider_name()] = provider.format_prompt(
-        #         self.messages,
-        #         self.configs[provider.get_provider_name()],
-        #         self.image_registry,
-        #     )
-
-    # def get_prompt_for(self, provider_name: str) -> str:
-    #     if len(self.prompts) == 0:
-    #         self.build()
-    #     return self.prompts[provider_name]
 
     def get_content_for(self, provider_name: str, preview=False) -> str:
-        if len(self.prompts) == 0:
-            self.build()
+        # if len(self.prompts) == 0:
+        self.build()
         provider = self.get_providers().get(provider_name)
         if provider is None:
             raise ValueError(f"Provider {provider_name} not found")
-        return provider.format_messages(self.messages, self.image_registry, preview)
+        messages = self.messages + self.user_messages + self.image_messages
+        return provider.format_messages(messages, self.image_registry, preview)
 
     def clear(self) -> None:
         self.messages = []

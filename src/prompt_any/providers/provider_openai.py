@@ -31,10 +31,10 @@ class ProviderOpenAI(Provider):
         Return OpenAI's default image configuration.
         """
         return ImageConfig(
-            requires_base64=False,
-            max_size=5_000_000,
+            requires_base64=True,
+            max_size=20_000_000,
             supported_formats=["png", "jpeg", "jpg"],
-            needs_download=False,
+            needs_download=True,
         )
 
     def format_prompt(

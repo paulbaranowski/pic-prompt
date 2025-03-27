@@ -58,7 +58,7 @@ class ImageRegistry:
         return f"ImageRegistry(image_data={self.image_data})"
 
     def download_image_data(
-        self, downloader=None, raise_on_error=True, local_only=True
+        self, downloader=None, raise_on_error=True
     ) -> "ImageRegistry":
         """
         Downloads images if needed and stores them in the image registry.
@@ -80,8 +80,6 @@ class ImageRegistry:
 
             for image_data in self.get_all_image_data():
                 if image_data.binary_data is not None:
-                    continue
-                if local_only and not image_data.is_local_image():
                     continue
                 try:
                     logger.info(f"Downloading image {image_data.image_path}")
