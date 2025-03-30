@@ -10,19 +10,16 @@ def setup_logger(name: str, level: Optional[str] = None) -> logging.Logger:
     Args:
         name: The name of the logger (typically __name__ from the calling module)
         level: The logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-              Defaults to INFO if not specified
+              Defaults to INFO if not specified.
     """
     # Create logger
     logger = logging.getLogger(name)
 
-    # Set level
-    log_level = getattr(logging, (level or "INFO").upper())
-    logger.setLevel(log_level)
-
-    # Create console handler with formatting
-    if not logger.handlers:  # Only add handler if none exists
+    # Only add handler if the logger doesn't have any handlers
+    # and the root logger doesn't have any handlers
+    if not logger.handlers and not logging.getLogger().handlers:
+        # Create console handler with formatting
         console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setLevel(log_level)
 
         # Create formatter
         formatter = logging.Formatter(
@@ -35,3 +32,28 @@ def setup_logger(name: str, level: Optional[str] = None) -> logging.Logger:
         logger.addHandler(console_handler)
 
     return logger
+
+
+def disable_logging():
+    """Disable all logging output"""
+    # Disable root logger
+    root = logging.getLogger()
+    root.handlers = []
+    root.setLevel(logging.CRITICAL + 100)
+    root.propagate = False
+
+    # Disable prompt_any logger and all its children
+    base_logger = logging.getLogger("prompt_any")
+    base_logger.handlers = []
+    base_logger.setLevel(logging.CRITICAL + 100)
+    base_logger.propagate = False
+
+    # Disable all existing loggers
+    for name in logging.root.manager.loggerDict:
+        logger = logging.getLogger(name)
+        logger.handlers = []
+        logger.setLevel(logging.CRITICAL + 100)
+        logger.propagate = False
+
+    # Disable all future logging
+    logging.disable(logging.CRITICAL)

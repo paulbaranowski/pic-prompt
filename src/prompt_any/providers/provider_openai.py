@@ -11,6 +11,9 @@ from prompt_any.core.prompt_config import PromptConfig
 from prompt_any.core.prompt_message import PromptMessage
 from prompt_any.core.prompt_content import PromptContent
 from prompt_any.images.image_registry import ImageRegistry
+from prompt_any.utils.logger import setup_logger
+
+logger = setup_logger(__name__)
 
 
 class ProviderOpenAI(Provider):
@@ -82,7 +85,7 @@ class ProviderOpenAI(Provider):
         Returns a dictionary containing the image URL formatted according to OpenAI's API requirements.
         """
         image_data = all_image_data.get_image_data(content.data)
-        print(f"image_data: {image_data}")
+        logger.info(f"image_data: {image_data}")
         if self._image_config.requires_base64 or image_data.is_local_image():
             encoded_data = image_data.get_encoded_data_for(self.get_provider_name())
             encoded_data = f"{len(encoded_data)} bytes" if preview else encoded_data

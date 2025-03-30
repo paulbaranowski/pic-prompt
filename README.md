@@ -31,20 +31,12 @@ uv add prompt-any
 ```
 
 ## Usage
+Set the OPENAI_API_KEY in your environment, typically in a `.env` file. 
+
+Example: examples/example1.py
+
+Run it using: 
 
 ```
-from prompt_any import PromptBuilder
-import litellm
-
-builder = PromptBuilder()
-builder.add_user_message("Describe this image")
-builder.add_image_message("my_image.png")
-content = prompt_builder.get_content_for("openai")
-response = litellm.completion(
-    model=model,
-    messages=content,
-)
-print(response)
+python -m examples.example1
 ```
-
-
