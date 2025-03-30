@@ -6,11 +6,19 @@ build-backend = "hatchling.build"
 name = "prompt-any"
 version = "1.1.16"
 description = "A library for building prompts for various LLM providers"
+authors = [
+    { name = "Paul Baranowski", email = "paulbaranowski@gmail.com" },
+]
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
 authors = [
     { name = "Paul Baranowski", email = "paulbaranowski@gmail.com" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
 ]
 dependencies = [
     "aiohttp>=3.8.0",
@@ -20,6 +28,10 @@ dependencies = [
     "pillow>=10.4.0",
     "litellm>=1.64.1",
 ]
+
+[project.urls]
+"Homepage" = "https://github.com/paulbaranowski/prompt-any"
+"Bug Tracker" = "https://github.com/paulbaranowski/prompt-any/issues"
 
 [project.optional-dependencies]
 test = [
