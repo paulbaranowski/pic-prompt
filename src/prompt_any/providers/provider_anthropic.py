@@ -2,13 +2,10 @@
 Provider helper implementation for Anthropic.
 """
 
-import json
 from typing import List
 
 from prompt_any.providers.provider import Provider
 from prompt_any.core.image_config import ImageConfig
-from prompt_any.core.prompt_config import PromptConfig
-from prompt_any.core.prompt_message import PromptMessage
 from prompt_any.core.prompt_content import PromptContent
 from prompt_any.images.image_registry import ImageRegistry
 
@@ -31,28 +28,6 @@ class ProviderAnthropic(Provider):
             supported_formats=["png", "jpeg", "gif", "webp"],
             needs_download=True,
         )
-
-    def format_prompt(
-        self,
-        messages: List[PromptMessage],
-        prompt_config: PromptConfig,
-        all_image_data: ImageRegistry,
-    ) -> str:
-        self._prompt_config = prompt_config
-        self._all_image_data = all_image_data
-        prompt_messages = self.format_messages(messages, all_image_data)
-        prompt = {
-            "messages": prompt_messages,
-            "model": prompt_config.model,
-            "temperature": prompt_config.temperature,
-            "max_tokens": prompt_config.max_tokens,
-            "top_p": prompt_config.top_p,
-        }
-
-        if prompt_config.json_response and prompt_config.json_schema is not None:
-            prompt["json_schema"] = prompt_config.json_schema
-
-        return json.dumps(prompt)
 
     def _format_content_text(self, content: PromptContent) -> str:
         """

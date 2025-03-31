@@ -35,93 +35,6 @@ def test_get_image_config(provider):
     assert config.needs_download is True
 
 
-def test_format_prompt(provider, image_registry):
-    messages = [
-        PromptMessage(
-            role="system",
-            content=[
-                PromptContent(type="text", content="You are a helpful assistant.")
-            ],
-        ),
-        PromptMessage(
-            role="user", content=[PromptContent(type="text", content="Hello")]
-        ),
-    ]
-    prompt_config = PromptConfig(
-        provider_name="gemini",
-        model="gemini-pro",
-        max_tokens=100,
-        temperature=0.7,
-        top_p=0.9,
-    )
-
-    formatted = provider.format_prompt(messages, prompt_config, image_registry)
-    parsed = json.loads(formatted)
-
-    assert "contents" in parsed
-    assert "generationConfig" in parsed
-    assert len(parsed["contents"]) == 2
-    assert parsed["contents"][0]["parts"][0]["text"] == "You are a helpful assistant."
-    assert parsed["contents"][1]["parts"][0]["text"] == "Hello"
-    assert parsed["generationConfig"]["maxOutputTokens"] == 100
-    assert parsed["generationConfig"]["temperature"] == 0.7
-    assert parsed["generationConfig"]["topP"] == 0.9
-    assert parsed["generationConfig"]["topK"] == 10
-
-
-def test_format_prompt_with_image(provider, image_registry):
-    messages = [
-        PromptMessage(
-            role="user",
-            content=[
-                PromptContent(type="text", content="What's in this image?"),
-                PromptContent(type="image", content="test_image"),
-            ],
-        ),
-    ]
-    prompt_config = PromptConfig(
-        provider_name="gemini",
-        model="gemini-pro-vision",
-        max_tokens=100,
-        temperature=0.7,
-        top_p=0.9,
-    )
-
-    # Add test image to registry
-    image_data = ImageData(
-        image_path="test_image",
-        media_type="image/jpeg",
-        binary_data=create_test_image(),
-    )
-    image_data.add_provider_encoded_image(provider.get_provider_name(), "encoded_data")
-    image_registry.add_image_data(image_data)
-
-    formatted = provider.format_prompt(messages, prompt_config, image_registry)
-    parsed = json.loads(formatted)
-
-    assert "contents" in parsed
-    assert "generationConfig" in parsed
-    assert len(parsed["contents"]) == 1
-
-    # Check parts ordering - image   should come before text
-    parts = parsed["contents"][0]["parts"]
-    assert len(parts) == 2
-
-    # Verify image part
-    assert "inline_data" in parts[0]
-    assert parts[0]["inline_data"]["mime_type"] == "image/jpeg"
-    assert parts[0]["inline_data"]["data"] == "encoded_data"
-
-    # Verify text part
-    assert parts[1]["text"] == "What's in this image?"
-
-    # Verify generation config
-    assert parsed["generationConfig"]["maxOutputTokens"] == 100
-    assert parsed["generationConfig"]["temperature"] == 0.7
-    assert parsed["generationConfig"]["topP"] == 0.9
-    assert parsed["generationConfig"]["topK"] == 10
-
-
 def test_format_messages(provider, image_registry):
     messages = [
         PromptMessage(
@@ -133,17 +46,14 @@ def test_format_messages(provider, image_registry):
     ]
 
     formatted = provider.format_messages(messages, image_registry)
-    assert "contents" in formatted
-    assert isinstance(formatted["contents"], list)
-    assert len(formatted["contents"]) == 2
+    assert isinstance(formatted, list)
+    assert len(formatted) == 2
 
     # Check first message
-    assert "parts" in formatted["contents"][0]
-    assert formatted["contents"][0]["parts"][0]["text"] == "Hello"
+    assert formatted[0]["text"] == "Hello"
 
     # Check second message
-    assert "parts" in formatted["contents"][1]
-    assert formatted["contents"][1]["parts"][0]["text"] == "Hi there"
+    assert formatted[1]["text"] == "Hi there"
 
 
 def test_format_content_text_only(provider, image_registry):
@@ -151,10 +61,10 @@ def test_format_content_text_only(provider, image_registry):
         role="user", content=[PromptContent(type="text", content="Hello")]
     )
 
-    formatted = provider.format_content(message, image_registry)
-    assert "parts" in formatted
-    assert len(formatted["parts"]) == 1
-    assert formatted["parts"][0]["text"] == "Hello"
+    formatted = provider.format_messages([message], image_registry)
+    assert isinstance(formatted, list)
+    assert len(formatted) == 1
+    assert formatted[0]["text"] == "Hello"
 
 
 def test_format_content_text_formatting(provider, image_registry):
@@ -163,10 +73,10 @@ def test_format_content_text_formatting(provider, image_registry):
         content=[PromptContent(type="text", content="Test\nWith\nNewlines")],
     )
 
-    formatted = provider.format_content(message, image_registry)
-    assert "parts" in formatted
-    assert len(formatted["parts"]) == 1
-    assert formatted["parts"][0]["text"] == "Test\nWith\nNewlines"
+    formatted = provider.format_messages([message], image_registry)
+    assert isinstance(formatted, list)
+    assert len(formatted) == 1
+    assert formatted[0]["text"] == "Test\nWith\nNewlines"
 
 
 def test_format_content_raises_on_missing_image(provider, image_registry):

@@ -101,12 +101,12 @@ class ImageRegistry:
                     return self
         return self
 
-    async def download_image_data_async(self) -> "ImageRegistry":
+    async def download_image_data_async(self, downloader=None) -> "ImageRegistry":
         """
         Asynchronously downloads images if needed and stores them in the image registry.
 
-        Only downloads images if they haven't already been downloaded and if at least one provider
-        requires downloaded images. The downloaded images are stored in the image registry for reuse.
+        Args:
+            downloader: Optional ImageDownloader instance for testing. Uses self.image_downloader if None.
 
         Returns:
             ImageRegistry: The registry containing all downloaded image data
@@ -114,15 +114,11 @@ class ImageRegistry:
         if self.num_images() > 0:
             downloader = downloader or self.image_downloader
 
-            errors = []
-
             for image_data in self.get_all_image_data():
                 if image_data.binary_data is not None:
                     continue
                 try:
-                    image_data = await self.image_downloader.download_async(
-                        image_data.image_path
-                    )
+                    image_data = await downloader.download_async(image_data.image_path)
                     # replace the old image data with the new one
                     self.add_image_data(image_data)
                 except ImageSourceError as e:

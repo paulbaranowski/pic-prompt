@@ -93,7 +93,9 @@ class ImageData:
             return encoded_data
         return None
 
-    def resize_and_encode(self, max_size: int, provider_name: str = "openai") -> str:
+    def resize_and_encode(
+        self, max_size: int, provider_name: str = "openai", resizer: ImageResizer = None
+    ) -> str:
         """
         Resize and encode an image to meet provider size requirements.
 
@@ -107,13 +109,14 @@ class ImageData:
         Args:
             max_size (int): Maximum allowed size in bytes for the binary image data
             provider_name (str): Name of the provider to store encoded data for
+            resizer: Optional ImageResizer instance for testing. Creates new one if None.
 
         Returns:
             ImageData: Self reference with encoded versions stored
         """
         logger.info(f"Processing image data for {self.image_path}")
 
-        resizer = ImageResizer(target_size=max_size)
+        resizer = resizer or ImageResizer(target_size=max_size)
         self.binary_data = resizer.resize(self.binary_data)
 
         # Encode the final binary data

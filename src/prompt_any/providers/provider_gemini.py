@@ -2,12 +2,10 @@
 Provider helper implementation for Gemini.
 """
 
-import json
-from typing import List, Union
+from typing import List
 
 from prompt_any.providers.provider import Provider
 from prompt_any.core.image_config import ImageConfig
-from prompt_any.core.prompt_config import PromptConfig
 from prompt_any.core.prompt_message import PromptMessage
 from prompt_any.images.image_registry import ImageRegistry
 from prompt_any.core.prompt_content import PromptContent, MessageType
@@ -42,40 +40,6 @@ class ProviderGemini(Provider):
             ],
             needs_download=True,
         )
-
-    def format_prompt(
-        self,
-        messages: List[PromptMessage],
-        prompt_config: PromptConfig,
-        all_image_data: ImageRegistry,
-    ) -> str:
-        """
-        Format the prompt based on Gemini's requirements.
-
-        Returns a JSON string containing:
-        - contents: List of formatted messages from format_messages()
-        - generationConfig: Settings for text generation
-        - safetySettings: Default safety thresholds
-        """
-        formatted_messages = self.format_messages(messages, all_image_data)
-
-        prompt = {
-            "contents": formatted_messages,
-            "generationConfig": {
-                "maxOutputTokens": prompt_config.max_tokens,
-                "temperature": prompt_config.temperature,
-                "topP": prompt_config.top_p,
-                "topK": 10,
-            },
-            # "safetySettings": [
-            #     {
-            #         "category": "HARM_CATEGORY_HARASSMENT",
-            #         "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-            #     }
-            # ]
-        }
-
-        return json.dumps(prompt)
 
     def format_messages(
         self,

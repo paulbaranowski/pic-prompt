@@ -4,7 +4,6 @@ Base provider helper interface for handling prompt formatting and provider-speci
 
 from abc import ABC, abstractmethod
 from typing import List, Union
-import base64
 
 from prompt_any.core.image_config import ImageConfig
 from prompt_any.core.prompt_config import PromptConfig
@@ -12,7 +11,6 @@ from prompt_any.core.prompt_message import PromptMessage, MessageType
 from prompt_any.core.prompt_content import PromptContent
 from prompt_any.images.image_registry import ImageRegistry
 from prompt_any.providers.provider_names import ProviderNames
-from prompt_any.images.image_data import ImageData
 from prompt_any.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
@@ -46,25 +44,6 @@ class Provider(ABC):
         Return the default image configuration for the provider.
 
         This should be specific to the provider's API requirements.
-        """
-        pass
-
-    @abstractmethod
-    def format_prompt(
-        self,
-        messages: List[PromptMessage],
-        prompt_config: PromptConfig,
-        all_image_data: ImageRegistry,
-    ) -> str:
-        """
-        Format the prompt based on the list of messages and the provided configuration.
-
-        Args:
-            messages (List[PromptMessage]): The list of messages to include in the prompt.
-            config (PromptConfig): The configuration settings for prompt generation.
-
-        Returns:
-            str: The formatted prompt string.
         """
         pass
 
@@ -117,81 +96,3 @@ class Provider(ABC):
         Format a text message based on the provider's requirements.
         """
         pass
-
-    def process_image(self, image_data: ImageData) -> str:
-        """
-        Process an image based on the provider's requirements.
-
-        If the provider requires base64 encoding, this will call resize_and_encode() on the image data
-        which will attempt to reduce the image size while maintaining quality until it meets the provider's
-        size requirements. The encoded image data is stored in the ImageData object for later use.
-
-        If the provider does not require base64 encoding, this will log that fact and return the original image data.
-
-        Args:
-            image_data (ImageData): The image data to process
-
-        Returns:
-            ImageData: The processed image data with encoded versions stored if required
-        """
-        if self.get_image_config().requires_base64 or image_data.is_local_image():
-            image_data.resize_and_encode(
-                self.get_image_config().max_size, self.get_provider_name()
-            )
-        else:
-            logger.info(
-                f"Not encoding image data for {image_data} due to provider image config."
-            )
-        return image_data
-
-    # def process_image(self, image_data: ImageData) -> str:
-    #     """
-    #     Process an image based on the provider's requirements.
-
-    #     If the provider requires base64 encoding, this will:
-    #     1. Encode the original image
-    #     2. If too large, try resampling the image and re-encode
-    #     3. If still too large, resize the image and re-encode
-
-    #     The encoded image data is stored in the ImageData object for later use.
-
-    #     Args:
-    #         image_data (ImageData): The image data to process
-
-    #     Returns:
-    #         ImageData: The processed image data with encoded versions stored
-    #     """
-    #     if self.get_image_config().requires_base64:
-    #         logger.info(f"Encoding image data for {image_data.image_path}")
-    #         encoded_data = self.encode_image(image_data.binary_data)
-    #         if len(encoded_data) > self.get_image_config().max_size:
-    #             logger.info(
-    #                 f"Encoded data is too large({len(encoded_data)} bytes) for {image_data.image_path}. Resampling..."
-    #             )
-    #             resampled_image = image_data.resample_image()
-    #             encoded_data = self.encode_image(resampled_image)
-    #             logger.info(f"Encoded data after resampling: {len(encoded_data)} bytes")
-    #             # if that didn't work, try resizing
-    #             if len(encoded_data) > self.get_image_config().max_size:
-    #                 logger.info(
-    #                     f"Encoded data is still too large for {image_data.image_path}. Resizing..."
-    #                 )
-    #                 resized_image = image_data.resize(self.get_image_config().max_size)
-    #                 encoded_data = self.encode_image(resized_image)
-    #                 logger.info(
-    #                     f"Encoded data after resizing: {len(encoded_data)} bytes"
-    #                 )
-    #         image_data.add_provider_encoded_image(
-    #             self.get_provider_name(), encoded_data
-    #         )
-    #     else:
-    #         logger.info(
-    #             f"Not encoding image data for {image_data} due to provider image config."
-    #         )
-    #     return image_data
-
-    def encode_image(self, binary_data: bytes) -> str:
-        """
-        Encode an image.
-        """
-        return base64.b64encode(binary_data).decode("utf-8")

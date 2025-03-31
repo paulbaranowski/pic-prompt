@@ -124,45 +124,48 @@ def test_repr(image_data, sample_image_bytes):
     assert "encoded_images=none" in repr_str
 
 
-def test_resample_image(image_data, sample_image_bytes):
-    """Test that resample_image returns valid image data with expected properties"""
-    # Set the binary data
+def test_encode_as_base64(image_data, sample_image_bytes):
+    """Test encoding image data as base64"""
+    # Set binary data
     image_data.binary_data = sample_image_bytes
 
-    # Transform the image
-    transformed_bytes = image_data.resample_image()
+    # Test default provider encoding
+    encoded = image_data.encode_as_base64()
+    assert encoded is not None
+    assert isinstance(encoded, str)
+    assert image_data.get_encoded_data_for("openai") == encoded
 
-    # Verify the result is valid image data
-    assert isinstance(transformed_bytes, bytes)
-    assert len(transformed_bytes) > 0
-
-    # Open and verify the transformed image
-    transformed_img = Image.open(BytesIO(transformed_bytes))
-    assert transformed_img.format == "JPEG"
-
-    # Original dimensions should be preserved
-    assert transformed_img.size == (100, 100)
-
-    # Verify we can read the image data without errors
-    transformed_img.load()
+    # Test encoding with no binary data
+    image_data.binary_data = None
+    assert image_data.encode_as_base64() is None
 
 
-def test_resample_image_different_formats():
-    """Test resampling works with different image formats"""
-    formats = ["PNG", "JPEG"]
+def test_resize_and_encode(image_data, sample_image_bytes, mocker):
+    """Test resizing and encoding image data"""
+    # Create mock resizer
+    mock_resizer = mocker.Mock()
+    mock_resizer.resize.return_value = sample_image_bytes  # Return valid image bytes
 
-    for fmt in formats:
-        # Create test image in specified format
-        img = Image.new("RGB", (50, 50), color="blue")
-        img_bytes = BytesIO()
-        img.save(img_bytes, format=fmt)
+    # Set initial binary data
+    image_data.binary_data = sample_image_bytes
+    initial_size = len(sample_image_bytes)
 
-        # Create ImageData instance with test image
-        image_data = ImageData("test.jpg", img_bytes.getvalue(), f"image/{fmt.lower()}")
+    # Test resizing to smaller max size
+    max_size = initial_size // 2
+    image_data.resize_and_encode(max_size, resizer=mock_resizer)
 
-        # Transform and verify
-        transformed = image_data.resample_image()
-        result_img = Image.open(BytesIO(transformed))
+    # Verify resizer was called with correct args
+    mock_resizer.resize.assert_called_with(sample_image_bytes)
 
-        assert result_img.format == fmt
-        assert result_img.size == (50, 50)
+    # Verify resized data was stored and is valid image bytes
+    assert image_data.binary_data == sample_image_bytes
+    assert image_data.image_obj is not None
+
+    # Verify encoded data was stored
+    encoded = image_data.get_encoded_data_for("openai")
+    assert encoded is not None
+    assert isinstance(encoded, str)
+
+    # Test with custom provider name
+    image_data.resize_and_encode(max_size, provider_name="custom", resizer=mock_resizer)
+    assert image_data.get_encoded_data_for("custom") is not None

@@ -139,7 +139,14 @@ class PromptBuilder:
     def encode_image_data(self) -> ImageRegistry:
         for image_data in self.image_registry.get_all_image_data():
             for provider in self.get_providers().values():
-                provider.process_image(image_data)
+                if (
+                    provider.get_image_config().requires_base64
+                    or image_data.is_local_image()
+                ):
+                    image_data.resize_and_encode(
+                        provider.get_image_config().max_size,
+                        provider.get_provider_name(),
+                    )
         return self.image_registry
 
     def get_providers(self) -> Dict[str, Provider]:
@@ -174,6 +181,8 @@ class PromptBuilder:
 
     def clear(self) -> None:
         self.messages = []
+        self.user_messages = []
+        self.image_messages = []
 
     def __repr__(self) -> str:
         return f"<PromptBuilder messages={self.messages}>"
