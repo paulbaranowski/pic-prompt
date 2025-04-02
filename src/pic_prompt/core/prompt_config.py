@@ -8,7 +8,7 @@ from typing import Optional, Dict, Any, List
 class PromptConfig:
     """
     Configuration for prompt generation.
-    For content generation (prompt_builder.get_content_for()), only the provider_name is required.
+    For content generation (pic_prompt.get_content_for()), only the provider_name is required.
 
     Args:
         provider_name: The name of the provider to use.

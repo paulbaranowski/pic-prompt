@@ -1,4 +1,4 @@
-from pic_prompt.builder import PromptBuilder
+from pic_prompt.builder import PicPrompt
 from pic_prompt.core.prompt_config import PromptConfig
 
 
@@ -10,7 +10,7 @@ config = PromptConfig(
     max_tokens=3000,
     url="https://api.openai.com/v1/chat/completions",
 )
-builder = PromptBuilder(configs=[config])
+builder = PicPrompt(configs=[config])
 builder.add_system_message("You are an image analysis AI.")
 builder.add_user_message("Return the text on the image.")
 builder.add_image_message("/path/to/local/image.jpg")

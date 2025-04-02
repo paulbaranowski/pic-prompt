@@ -5,6 +5,7 @@
 + ├── src/
 + │   └── pic_prompt/    # Note underscore in package name
 + │       ├── __init__.py              # Main package exports
++ │       ├── pic_prompt.py            # Main file
 + │       ├── core/
 + │       │   ├── __init__.py          # Core module exports
 + │       │   ├── prompt_message.py     # PromptMessage class
@@ -20,19 +21,15 @@
 + │       │   ├── provider_helper_anthropic.py # Anthropic implementation
 + │       │   └── provider_helper_gemini.py    # Gemini implementation
 + │       ├── images/
-+ │       │   ├── __init__.py
-+ │       │   ├── image_handler.py     # ImageHandler
-+ │       │   ├── sources/
-+ │       │   │   ├── __init__.py
-+ │       │   │   ├── image_source.py  # ImageSource base class
-+ │       │   │   ├── local_source.py  # LocalFileSource
-+ │       │   │   ├── http_source.py   # HttpSource
-+ │       │   │   └── s3_source.py     # S3Source
-+ │       │   └── image_errors.py      # Image-specific errors
-+ │       └── builder/
 + │           ├── __init__.py
-+ │           ├── prompt_builder.py    # PromptBuilder
-+ │           └── async_prompt_builder.py  # AsyncPromptBuilder
++ │           ├── image_handler.py     # ImageHandler
++ │           ├── sources/
++ │           │   ├── __init__.py
++ │           │   ├── image_source.py  # ImageSource base class
++ │           │   ├── local_source.py  # LocalFileSource
++ │           │   ├── http_source.py   # HttpSource
++ │           │   └── s3_source.py     # S3Source
++ │           └── image_errors.py      # Image-specific errors
 + └── tests/
 +     ├── __init__.py
 +     ├── conftest.py                  # pytest configuration
@@ -46,4 +43,3 @@
 +         ├── __init__.py
 +         ├── test_handler.py
 +         └── test_sources.py
-- src/prompt_builder/    # Remove old directory

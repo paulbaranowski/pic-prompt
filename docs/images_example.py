@@ -1,10 +1,10 @@
-from prompt_builder import PromptBuilder, ImageSourceError
-from prompt_config import PromptConfig
+from pic_prompt import PicPrompt, ImageSourceError
+from pic_prompt.core import PromptConfig
 
 
 def main():
     # Initialize builder with image sources
-    builder = PromptBuilder()
+    builder = PicPrompt()
 
     # Set up the conversation
     builder.add_system_message("You are an AI that analyzes images.")

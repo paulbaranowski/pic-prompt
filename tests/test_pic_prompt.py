@@ -1,17 +1,15 @@
 import pytest
-from pic_prompt.builder.prompt_builder import PromptBuilder
+from pic_prompt.pic_prompt import PicPrompt
 from pic_prompt.core import PromptConfig
 from pic_prompt.core.message_role import MessageRole
 from pic_prompt.core.message_type import MessageType
-import os
-from pic_prompt.images.errors import ImageSourceError, ImageDownloadError
 
 
 @pytest.fixture
 def builder():
     """Basic prompt builder fixture"""
     config = PromptConfig(provider_name="openai")
-    builder = PromptBuilder()
+    builder = PicPrompt()
     builder.add_config(config)
     return builder
 
@@ -30,7 +28,7 @@ def invalid_config():
 
 def test_init_default():
     """Test initialization with default config"""
-    builder = PromptBuilder()
+    builder = PicPrompt()
     assert len(builder.configs) == 1
     assert len(builder.messages) == 0
     assert len(builder.prompts) == 0
@@ -39,7 +37,7 @@ def test_init_default():
 
 def test_init_custom(custom_config):
     """Test initialization with custom config"""
-    builder = PromptBuilder()
+    builder = PicPrompt()
     builder.add_config(custom_config)
     assert len(builder.configs) == 1
     assert "openai" in builder.configs

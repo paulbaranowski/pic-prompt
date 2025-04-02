@@ -1,16 +1,15 @@
 from typing import List, Dict
 from pic_prompt.core import PromptMessage, PromptConfig
 from pic_prompt.providers import ProviderFactory, Provider
-from pic_prompt.images import ImageDownloader, ImageData
+from pic_prompt.images import ImageData
 from pic_prompt.images.image_registry import ImageRegistry
 from pic_prompt.providers.provider_names import ProviderNames
-from pic_prompt.images.errors import ImageSourceError, ImageDownloadError
 from pic_prompt.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
 
 
-class PromptBuilder:
+class PicPrompt:
     """
       Main Builder Class for constructing prompts for various LLM providers.
 

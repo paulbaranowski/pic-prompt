@@ -19,7 +19,7 @@ from pic_prompt.core import (
     ProviderError,
     ImageProcessingError,
 )
-from pic_prompt.builder import PromptBuilder
+from .pic_prompt import PicPrompt
 from pic_prompt.images import ImageRegistry, ImageData, ImageDownloader
 
 
@@ -32,7 +32,7 @@ __all__ = [
     "ConfigurationError",
     "ProviderError",
     "ImageProcessingError",
-    "PromptBuilder",
+    "PicPrompt",
     "ImageRegistry",
     "ImageData",
     "ImageDownloader",
