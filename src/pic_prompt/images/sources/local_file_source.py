@@ -4,8 +4,8 @@ LocalFileSource - Loads images from the local filesystem.
 
 import asyncio
 import mimetypes
-from prompt_any.images.sources.image_source import ImageSource
-from prompt_any.images.errors import (
+from pic_prompt.images.sources.image_source import ImageSource
+from pic_prompt.images.errors import (
     ImageSourceError,
 )  # Ensure this error class exists in errors.py
 

@@ -1,9 +1,9 @@
-from prompt_any import PromptBuilder
+from pic_prompt import PromptBuilder
 import litellm
 import textwrap
 import logging
 
-logging.getLogger("prompt_any").setLevel(logging.WARNING)
+logging.getLogger("pic_prompt").setLevel(logging.WARNING)
 
 
 image_file = "examples/sweetgum.jpg"

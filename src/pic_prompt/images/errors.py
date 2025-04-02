@@ -1,5 +1,5 @@
 """
-Image-specific errors for the prompt_any library.
+Image-specific errors for the pic_prompt library.
 """
 
 

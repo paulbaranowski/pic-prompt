@@ -1,8 +1,8 @@
 import pytest
 from io import BytesIO
 from PIL import Image
-from prompt_any.images.image_data import ImageData
-from prompt_any.core.errors import ImageProcessingError
+from pic_prompt.images.image_data import ImageData
+from pic_prompt.core.errors import ImageProcessingError
 
 
 @pytest.fixture

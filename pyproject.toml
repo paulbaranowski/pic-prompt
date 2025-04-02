@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "prompt-any"
-version = "1.1.17"
-description = "A library for building prompts for various LLM providers"
+name = "pic_prompt"
+version = "1.2.0"
+description = "A library for building imageprompts for various LLM providers"
 authors = [
     { name = "Paul Baranowski", email = "paulbaranowski@gmail.com" },
 ]
@@ -43,7 +43,7 @@ asyncio_mode = "auto"
 testpaths = ["tests"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/prompt_any"]
+packages = ["src/pic_prompt"]
 
 [dependency-groups]
 dev = [

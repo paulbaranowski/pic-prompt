@@ -1,9 +1,9 @@
 import pytest
-from prompt_any.images.image_registry import ImageRegistry
-from prompt_any.images.image_data import ImageData
+from pic_prompt.images.image_registry import ImageRegistry
+from pic_prompt.images.image_data import ImageData
 from conftest import create_test_image
 import os
-from prompt_any.images.errors import ImageDownloadError, ImageSourceError
+from pic_prompt.images.errors import ImageDownloadError, ImageSourceError
 
 
 @pytest.fixture

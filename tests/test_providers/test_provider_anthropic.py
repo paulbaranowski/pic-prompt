@@ -1,11 +1,11 @@
 import pytest
 import json
-from prompt_any.providers.provider_anthropic import ProviderAnthropic
-from prompt_any.core.prompt_config import PromptConfig
-from prompt_any.core.prompt_message import PromptMessage
-from prompt_any.core.prompt_content import PromptContent
-from prompt_any.images.image_registry import ImageRegistry
-from prompt_any.images.image_data import ImageData
+from pic_prompt.providers.provider_anthropic import ProviderAnthropic
+from pic_prompt.core.prompt_config import PromptConfig
+from pic_prompt.core.prompt_message import PromptMessage
+from pic_prompt.core.prompt_content import PromptContent
+from pic_prompt.images.image_registry import ImageRegistry
+from pic_prompt.images.image_data import ImageData
 from conftest import create_test_image
 
 

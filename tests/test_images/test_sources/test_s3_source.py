@@ -1,6 +1,6 @@
 import pytest
-from prompt_any.images.sources.s3_source import S3Source
-from prompt_any.images.errors import ImageSourceError
+from pic_prompt.images.sources.s3_source import S3Source
+from pic_prompt.images.errors import ImageSourceError
 import pytest
 
 

@@ -1,10 +1,10 @@
 import pytest
 import json
-from prompt_any.providers.provider_openai import ProviderOpenAI
-from prompt_any.core.prompt_config import PromptConfig
-from prompt_any.core.prompt_message import PromptMessage
-from prompt_any.core.prompt_content import PromptContent
-from prompt_any.images.image_registry import ImageRegistry
+from pic_prompt.providers.provider_openai import ProviderOpenAI
+from pic_prompt.core.prompt_config import PromptConfig
+from pic_prompt.core.prompt_message import PromptMessage
+from pic_prompt.core.prompt_content import PromptContent
+from pic_prompt.images.image_registry import ImageRegistry
 from unittest.mock import Mock
 
 
@@ -33,7 +33,7 @@ def test_image_config(provider):
 
 
 def test_format_content_text(provider):
-    from prompt_any.core.prompt_content import PromptContent
+    from pic_prompt.core.prompt_content import PromptContent
 
     content = PromptContent(type="text", content="Hello world")
     result = provider._format_content_text(content)
@@ -43,7 +43,7 @@ def test_format_content_text(provider):
 
 
 def test_format_content_image(provider):
-    from prompt_any.core.prompt_content import PromptContent
+    from pic_prompt.core.prompt_content import PromptContent
 
     content = PromptContent(type="image", content="http://example.com/image.jpg")
     registry = ImageRegistry()

@@ -1,7 +1,7 @@
 import os
 import pytest
-from prompt_any.images.sources.local_file_source import LocalFileSource
-from prompt_any.images.errors import ImageSourceError
+from pic_prompt.images.sources.local_file_source import LocalFileSource
+from pic_prompt.images.errors import ImageSourceError
 
 
 @pytest.fixture

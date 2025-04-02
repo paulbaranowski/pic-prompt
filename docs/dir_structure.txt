@@ -3,7 +3,7 @@
 + ├── README.md          # Project overview and usage
 + ├── LICENSE           # MIT license
 + ├── src/
-+ │   └── prompt_any/    # Note underscore in package name
++ │   └── pic_prompt/    # Note underscore in package name
 + │       ├── __init__.py              # Main package exports
 + │       ├── core/
 + │       │   ├── __init__.py          # Core module exports

@@ -1,8 +1,8 @@
 from typing import Dict, List, Optional
-from prompt_any.images.image_data import ImageData
-from prompt_any.images.image_downloader import ImageDownloader
-from prompt_any.images.errors import ImageSourceError, ImageDownloadError
-from prompt_any.utils.logger import setup_logger
+from pic_prompt.images.image_data import ImageData
+from pic_prompt.images.image_downloader import ImageDownloader
+from pic_prompt.images.errors import ImageSourceError, ImageDownloadError
+from pic_prompt.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
 

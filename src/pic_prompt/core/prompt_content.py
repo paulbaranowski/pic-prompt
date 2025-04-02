@@ -1,4 +1,4 @@
-from prompt_any.core.message_type import MessageType
+from pic_prompt.core.message_type import MessageType
 
 
 class PromptContent:

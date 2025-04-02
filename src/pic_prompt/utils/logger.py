@@ -42,8 +42,8 @@ def disable_logging():
     root.setLevel(logging.CRITICAL + 100)
     root.propagate = False
 
-    # Disable prompt_any logger and all its children
-    base_logger = logging.getLogger("prompt_any")
+    # Disable pic_prompt logger and all its children
+    base_logger = logging.getLogger("pic_prompt")
     base_logger.handlers = []
     base_logger.setLevel(logging.CRITICAL + 100)
     base_logger.propagate = False

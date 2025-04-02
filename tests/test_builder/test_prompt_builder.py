@@ -1,10 +1,10 @@
 import pytest
-from prompt_any.builder.prompt_builder import PromptBuilder
-from prompt_any.core import PromptConfig
-from prompt_any.core.message_role import MessageRole
-from prompt_any.core.message_type import MessageType
+from pic_prompt.builder.prompt_builder import PromptBuilder
+from pic_prompt.core import PromptConfig
+from pic_prompt.core.message_role import MessageRole
+from pic_prompt.core.message_type import MessageType
 import os
-from prompt_any.images.errors import ImageSourceError, ImageDownloadError
+from pic_prompt.images.errors import ImageSourceError, ImageDownloadError
 
 
 @pytest.fixture

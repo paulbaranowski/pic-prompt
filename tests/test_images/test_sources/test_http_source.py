@@ -1,7 +1,7 @@
 import pytest
 import requests
-from prompt_any.images.sources.http_source import HttpSource
-from prompt_any.images.errors import ImageSourceError
+from pic_prompt.images.sources.http_source import HttpSource
+from pic_prompt.images.errors import ImageSourceError
 import os
 import mimetypes
 import aiohttp

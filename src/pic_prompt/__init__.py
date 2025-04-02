@@ -9,7 +9,7 @@ from importlib.metadata import version
 __version__ = version("prompt-any")
 
 
-from prompt_any.core import (
+from pic_prompt.core import (
     PromptMessage,
     MessageType,
     PromptConfig,
@@ -19,8 +19,8 @@ from prompt_any.core import (
     ProviderError,
     ImageProcessingError,
 )
-from prompt_any.builder import PromptBuilder
-from prompt_any.images import ImageRegistry, ImageData, ImageDownloader
+from pic_prompt.builder import PromptBuilder
+from pic_prompt.images import ImageRegistry, ImageData, ImageDownloader
 
 
 __all__ = [

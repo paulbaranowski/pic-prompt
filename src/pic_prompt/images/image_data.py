@@ -3,10 +3,10 @@ from typing import Dict, Optional
 from PIL import Image, UnidentifiedImageError
 from io import BytesIO
 from math import sqrt
-from prompt_any.core.errors import ImageProcessingError
-from prompt_any.utils.logger import setup_logger
-from prompt_any.images.sources.local_file_source import LocalFileSource
-from prompt_any.images.image_resizer import ImageResizer
+from pic_prompt.core.errors import ImageProcessingError
+from pic_prompt.utils.logger import setup_logger
+from pic_prompt.images.sources.local_file_source import LocalFileSource
+from pic_prompt.images.image_resizer import ImageResizer
 
 logger = setup_logger(__name__)
 

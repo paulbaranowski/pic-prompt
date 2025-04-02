@@ -5,13 +5,13 @@ Base provider helper interface for handling prompt formatting and provider-speci
 from abc import ABC, abstractmethod
 from typing import List, Union
 
-from prompt_any.core.image_config import ImageConfig
-from prompt_any.core.prompt_config import PromptConfig
-from prompt_any.core.prompt_message import PromptMessage, MessageType
-from prompt_any.core.prompt_content import PromptContent
-from prompt_any.images.image_registry import ImageRegistry
-from prompt_any.providers.provider_names import ProviderNames
-from prompt_any.utils.logger import setup_logger
+from pic_prompt.core.image_config import ImageConfig
+from pic_prompt.core.prompt_config import PromptConfig
+from pic_prompt.core.prompt_message import PromptMessage, MessageType
+from pic_prompt.core.prompt_content import PromptContent
+from pic_prompt.images.image_registry import ImageRegistry
+from pic_prompt.providers.provider_names import ProviderNames
+from pic_prompt.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
 

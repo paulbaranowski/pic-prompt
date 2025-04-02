@@ -4,10 +4,10 @@ Provider helper implementation for Anthropic.
 
 from typing import List
 
-from prompt_any.providers.provider import Provider
-from prompt_any.core.image_config import ImageConfig
-from prompt_any.core.prompt_content import PromptContent
-from prompt_any.images.image_registry import ImageRegistry
+from pic_prompt.providers.provider import Provider
+from pic_prompt.core.image_config import ImageConfig
+from pic_prompt.core.prompt_content import PromptContent
+from pic_prompt.images.image_registry import ImageRegistry
 
 
 class ProviderAnthropic(Provider):

@@ -1,5 +1,5 @@
-from prompt_any.builder import PromptBuilder
-from prompt_any.core.prompt_config import PromptConfig
+from pic_prompt.builder import PromptBuilder
+from pic_prompt.core.prompt_config import PromptConfig
 
 
 # Synchronous usage

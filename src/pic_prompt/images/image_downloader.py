@@ -5,13 +5,13 @@ Image handler module.
 import boto3
 
 from typing import Dict, Union, Optional
-from prompt_any.images.sources.image_source import ImageSource
-from prompt_any.core.errors import ImageProcessingError
-from prompt_any.images.sources.local_file_source import LocalFileSource
-from prompt_any.images.sources.http_source import HttpSource
-from prompt_any.images.sources.s3_source import S3Source
-from prompt_any.images.image_data import ImageData
-from prompt_any.core.image_config import ImageConfigRegistry
+from pic_prompt.images.sources.image_source import ImageSource
+from pic_prompt.core.errors import ImageProcessingError
+from pic_prompt.images.sources.local_file_source import LocalFileSource
+from pic_prompt.images.sources.http_source import HttpSource
+from pic_prompt.images.sources.s3_source import S3Source
+from pic_prompt.images.image_data import ImageData
+from pic_prompt.core.image_config import ImageConfigRegistry
 
 
 class ImageDownloader:

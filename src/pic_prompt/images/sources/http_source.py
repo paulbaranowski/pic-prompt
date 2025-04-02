@@ -5,8 +5,8 @@ Loads images from HTTP(S) URLs.
 import requests
 import aiohttp
 import mimetypes
-from prompt_any.images.sources.image_source import ImageSource
-from prompt_any.images.errors import ImageSourceError
+from pic_prompt.images.sources.image_source import ImageSource
+from pic_prompt.images.errors import ImageSourceError
 
 
 class HttpSource(ImageSource):

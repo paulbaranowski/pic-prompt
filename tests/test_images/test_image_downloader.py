@@ -2,10 +2,10 @@ import unittest
 import asyncio
 import pytest
 import boto3
-from prompt_any.images.image_downloader import ImageDownloader
-from prompt_any.images.image_data import ImageData
-from prompt_any.core.errors import ImageProcessingError
-from prompt_any.images.sources.s3_source import S3Source
+from pic_prompt.images.image_downloader import ImageDownloader
+from pic_prompt.images.image_data import ImageData
+from pic_prompt.core.errors import ImageProcessingError
+from pic_prompt.images.sources.s3_source import S3Source
 from PIL import Image
 from io import BytesIO
 from conftest import create_test_image

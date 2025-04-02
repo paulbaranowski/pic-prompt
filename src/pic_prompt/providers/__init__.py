@@ -1,5 +1,5 @@
 """
-Providers module for the prompt_any library.
+Providers module for the pic_prompt library.
 
 This module exports the provider-related components:
 - ProviderHelper: Base class for provider-specific helpers
@@ -7,13 +7,13 @@ This module exports the provider-related components:
 - Specific provider implementations (OpenAI, Anthropic, Gemini)
 """
 
-from prompt_any.providers.provider import Provider
-from prompt_any.providers.provider_factory import (
+from pic_prompt.providers.provider import Provider
+from pic_prompt.providers.provider_factory import (
     ProviderFactory,
 )
-from prompt_any.providers.provider_openai import ProviderOpenAI
-from prompt_any.providers.provider_anthropic import ProviderAnthropic
-from prompt_any.providers.provider_gemini import ProviderGemini
+from pic_prompt.providers.provider_openai import ProviderOpenAI
+from pic_prompt.providers.provider_anthropic import ProviderAnthropic
+from pic_prompt.providers.provider_gemini import ProviderGemini
 
 __all__ = [
     "Provider",

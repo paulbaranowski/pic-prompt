@@ -1,5 +1,5 @@
 import pytest
-from prompt_any.core.image_config import ImageConfig
+from pic_prompt.core.image_config import ImageConfig
 
 
 @pytest.fixture

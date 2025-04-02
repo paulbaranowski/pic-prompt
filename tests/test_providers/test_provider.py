@@ -1,14 +1,14 @@
 import pytest
-from prompt_any.core.image_config import ImageConfig
-from prompt_any.core.prompt_config import PromptConfig
-from prompt_any.core.prompt_message import PromptMessage
-from prompt_any.core.message_role import MessageRole
-from prompt_any.images.image_registry import ImageRegistry
-from prompt_any.providers.provider import Provider
+from pic_prompt.core.image_config import ImageConfig
+from pic_prompt.core.prompt_config import PromptConfig
+from pic_prompt.core.prompt_message import PromptMessage
+from pic_prompt.core.message_role import MessageRole
+from pic_prompt.images.image_registry import ImageRegistry
+from pic_prompt.providers.provider import Provider
 from PIL import Image
 from io import BytesIO
 import base64
-from prompt_any.images.image_data import ImageData
+from pic_prompt.images.image_data import ImageData
 
 
 class MockProvider(Provider):

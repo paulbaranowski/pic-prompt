@@ -1,5 +1,5 @@
 import pytest
-from prompt_any.core.message_role import MessageRole
+from pic_prompt.core.message_role import MessageRole
 
 
 def test_message_role_values():

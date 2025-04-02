@@ -1,5 +1,5 @@
 import pytest
-from prompt_any.images.sources.image_source import ImageSource
+from pic_prompt.images.sources.image_source import ImageSource
 
 
 class DummyImageSource(ImageSource):

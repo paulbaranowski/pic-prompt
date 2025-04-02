@@ -1,5 +1,5 @@
 """
-Core module for the prompt_any library.
+Core module for the pic_prompt library.
 
 This module exports the core components for prompt building:
 - messages: Contains PromptMessage and MessageType.
@@ -7,13 +7,13 @@ This module exports the core components for prompt building:
 - errors: Contains error classes for prompt building.
 """
 
-from prompt_any.core.prompt_message import PromptMessage
-from prompt_any.core.message_type import MessageType
-from prompt_any.core.message_role import MessageRole
-from prompt_any.core.prompt_content import PromptContent
-from prompt_any.core.prompt_config import PromptConfig
-from prompt_any.core.image_config import ImageConfig
-from prompt_any.core.errors import (
+from pic_prompt.core.prompt_message import PromptMessage
+from pic_prompt.core.message_type import MessageType
+from pic_prompt.core.message_role import MessageRole
+from pic_prompt.core.prompt_content import PromptContent
+from pic_prompt.core.prompt_config import PromptConfig
+from pic_prompt.core.image_config import ImageConfig
+from pic_prompt.core.errors import (
     PromptBuilderError,
     ConfigurationError,
     ProviderError,

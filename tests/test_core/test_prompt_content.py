@@ -1,6 +1,6 @@
 import pytest
-from prompt_any.core.prompt_content import PromptContent
-from prompt_any.core.message_type import MessageType
+from pic_prompt.core.prompt_content import PromptContent
+from pic_prompt.core.message_type import MessageType
 
 
 @pytest.fixture

@@ -1,5 +1,5 @@
 """
-Core error classes for the prompt_any library.
+Core error classes for the pic_prompt library.
 """
 
 

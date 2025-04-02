@@ -1,5 +1,5 @@
 """
-Image Sources module for prompt_any.
+Image Sources module for pic_prompt.
 
 This module re-exports the image source classes:
     - ImageSource: The abstract base class.
@@ -8,10 +8,10 @@ This module re-exports the image source classes:
     - S3Source: Loads images from S3.
 """
 
-from prompt_any.images.sources.image_source import ImageSource
-from prompt_any.images.sources.local_file_source import LocalFileSource
-from prompt_any.images.sources.http_source import HttpSource
-from prompt_any.images.sources.s3_source import S3Source
+from pic_prompt.images.sources.image_source import ImageSource
+from pic_prompt.images.sources.local_file_source import LocalFileSource
+from pic_prompt.images.sources.http_source import HttpSource
+from pic_prompt.images.sources.s3_source import S3Source
 
 __all__ = [
     "ImageSource",

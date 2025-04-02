@@ -3,9 +3,9 @@ Core message types and classes for prompt building
 """
 
 from typing import List
-from prompt_any.core.message_type import MessageType
-from prompt_any.core.message_role import MessageRole
-from prompt_any.core.prompt_content import PromptContent
+from pic_prompt.core.message_type import MessageType
+from pic_prompt.core.message_role import MessageRole
+from pic_prompt.core.prompt_content import PromptContent
 
 
 class PromptMessage:
