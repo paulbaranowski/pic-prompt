@@ -1,4 +1,4 @@
-+ prompt-any/
++ pic-prompt/
 + ├── pyproject.toml      # Already created
 + ├── README.md          # Project overview and usage
 + ├── LICENSE           # MIT license

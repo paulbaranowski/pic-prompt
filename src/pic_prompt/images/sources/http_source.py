@@ -23,7 +23,7 @@ class HttpSource(ImageSource):
         self.async_http_client = async_http_client
         self.timeout = timeout
         # Default headers to help with rate limiting and server policies
-        self.headers = {"User-Agent": "prompt-any/1.0"}
+        self.headers = {"User-Agent": "pic-prompt/1.0"}
 
     def get_source_type(self) -> str:
         """

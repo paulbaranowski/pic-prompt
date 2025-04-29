@@ -1,4 +1,4 @@
-# prompt-any
+# pic-prompt
 
 A Python library that provides a simple and flexible way to build image-based prompts for 
 OpenAI. Initially it was developed to generate the prompt for different providers, but
@@ -22,12 +22,12 @@ It is easy to add support for other providers and other image sources.
 ## Installation
 
 ```bash
-pip install prompt-any
+pip install pic-prompt
 ```
 or:
 
 ```bash
-uv add prompt-any
+uv add pic-prompt
 ```
 
 ## Usage

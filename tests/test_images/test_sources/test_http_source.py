@@ -168,7 +168,7 @@ def test_get_image_403_error(mocker):
     mock_get.assert_called_once_with(
         "http://example.com/forbidden",
         timeout=30,
-        headers={"User-Agent": "prompt-any/1.0"},
+        headers={"User-Agent": "pic-prompt/1.0"},
     )
     assert "Access forbidden (HTTP 403)" in str(err.value)
     assert "authentication or have rate limiting" in str(err.value)
@@ -187,7 +187,7 @@ def test_get_image_500_error(mocker):
     mock_get.assert_called_once_with(
         "http://example.com/server-error",
         timeout=30,
-        headers={"User-Agent": "prompt-any/1.0"},
+        headers={"User-Agent": "pic-prompt/1.0"},
     )
     assert "HTTP 500" in str(err.value)
 
@@ -206,7 +206,7 @@ def test_get_image_request_exception(mocker):
     mock_get.assert_called_once_with(
         "http://example.com/error",
         timeout=30,
-        headers={"User-Agent": "prompt-any/1.0"},
+        headers={"User-Agent": "pic-prompt/1.0"},
     )
     assert "Network error downloading" in str(err.value)
     assert "Connection error" in str(err.value)
