@@ -105,7 +105,7 @@ def test_repr(image_registry, sample_image_data):
 
 def test_download_image_data(image_registry, mocker):
     """Test downloading image data"""
-    # Mock the ImageDownloader instance
+    # Mock the instance
     mock_downloader = mocker.Mock()
     mock_image_data = mocker.Mock(
         image_path="test.jpg",

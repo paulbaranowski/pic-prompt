@@ -2,7 +2,7 @@ import unittest
 import asyncio
 import pytest
 import boto3
-from pic_prompt.images.image_downloader import ImageDownloader
+from pic_prompt.images.image_downloader import ImageLoader
 from pic_prompt.images.image_data import ImageData
 from pic_prompt.core.errors import ImageProcessingError
 from pic_prompt.images.sources.s3_source import S3Source
@@ -43,8 +43,8 @@ class FailingImageSource:
 
 @pytest.fixture
 def downloader():
-    # Create an ImageDownloader instance and override sources for controlled testing
-    downloader = ImageDownloader()
+    # Create an instance and override sources for controlled testing
+    downloader = ImageLoader()
     # Clear default sources
     downloader.sources = {}
     return downloader
@@ -92,7 +92,7 @@ def test_init_with_s3_client():
     s3_client = boto3.client("s3")
 
     # Create downloader with S3 client
-    downloader = ImageDownloader(s3_client=s3_client)
+    downloader = ImageLoader(s3_client=s3_client)
 
     # Verify default sources are registered
     assert "file" in downloader.sources
@@ -107,7 +107,7 @@ def test_init_with_s3_client():
 
 def test_init_without_s3_client():
     # Create downloader without S3 client
-    downloader = ImageDownloader()
+    downloader = ImageLoader()
 
     # Verify default sources except S3 are registered
     assert "file" in downloader.sources

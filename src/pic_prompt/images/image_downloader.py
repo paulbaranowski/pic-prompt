@@ -14,7 +14,7 @@ from pic_prompt.images.image_data import ImageData
 from pic_prompt.core.image_config import ImageConfigRegistry
 
 
-class ImageDownloader:
+class ImageLoader:
     """Main class for handling image operations."""
 
     def __init__(self, s3_client: Optional[boto3.client] = None) -> None:
@@ -31,10 +31,10 @@ class ImageDownloader:
             self.register_source("s3", S3Source(s3_client))
 
     @staticmethod
-    def download_image(image_path: str) -> ImageData:
+    def fetch(image_path: str) -> ImageData:
         """Static method to create a new instance and download an image."""
-        downloader = ImageDownloader()
-        return downloader.download(image_path)
+        loader = ImageLoader()
+        return loader.download(image_path)
 
     def register_source(self, protocol: str, source: ImageSource) -> None:
         """

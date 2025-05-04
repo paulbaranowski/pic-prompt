@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 from pic_prompt.images.image_data import ImageData
-from pic_prompt.images.image_downloader import ImageDownloader
+from pic_prompt.images.image_downloader import ImageLoader
 from pic_prompt.images.errors import ImageSourceError, ImageDownloadError
 from pic_prompt.utils.logger import setup_logger
 
@@ -10,7 +10,7 @@ logger = setup_logger(__name__)
 class ImageRegistry:
     def __init__(self):
         self.image_data: Dict[str, ImageData] = {}
-        self.image_downloader = ImageDownloader()
+        self.image_downloader = ImageLoader()
         self._has_local_images = False
 
     def add_image_path(self, image_path: str):
@@ -64,7 +64,7 @@ class ImageRegistry:
         Downloads images if needed and stores them in the image registry.
 
         Args:
-            downloader: Optional ImageDownloader instance for testing. Uses self.image_downloader if None.
+            downloader: Optional ImageLoader instance for testing. Uses self.image_downloader if None.
             raise_on_error: Whether to raise an exception on download errors
 
         Returns:
@@ -106,7 +106,7 @@ class ImageRegistry:
         Asynchronously downloads images if needed and stores them in the image registry.
 
         Args:
-            downloader: Optional ImageDownloader instance for testing. Uses self.image_downloader if None.
+            downloader: Optional ImageLoader instance for testing. Uses self.image_downloader if None.
 
         Returns:
             ImageRegistry: The registry containing all downloaded image data
