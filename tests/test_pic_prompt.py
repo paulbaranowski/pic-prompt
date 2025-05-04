@@ -10,7 +10,7 @@ def builder():
     """Basic prompt builder fixture"""
     config = PromptConfig(provider_name="openai")
     builder = PicPrompt()
-    builder.add_config(config)
+    builder._add_config(config)
     return builder
 
 
@@ -38,7 +38,7 @@ def test_init_default():
 def test_init_custom(custom_config):
     """Test initialization with custom config"""
     builder = PicPrompt()
-    builder.add_config(custom_config)
+    builder._add_config(custom_config)
     assert len(builder.configs) == 1
     assert "openai" in builder.configs
     assert builder.configs["openai"] == custom_config
@@ -100,31 +100,6 @@ def test_add_assistant_message(builder):
     assert builder.messages[0].content[0].data == message
 
 
-def test_add_config(builder, custom_config):
-    """Test adding new config"""
-    builder.add_config(custom_config)
-    assert "openai" in builder.configs
-    assert builder.configs["openai"] == custom_config
-
-
-def test_get_config(builder):
-    """Test getting config"""
-    config = builder.get_config("openai")
-    assert isinstance(config, PromptConfig)
-
-
-def test_remove_config(builder):
-    """Test removing config"""
-    builder.remove_config("openai")
-    assert "openai" not in builder.configs
-
-
-def test_has_config(builder):
-    """Test checking config existence"""
-    assert builder.has_config("openai") is True
-    assert builder.has_config("invalid") is False
-
-
 def test_clear(builder):
     """Test clearing messages"""
     builder.add_user_message("Hello")
@@ -137,12 +112,6 @@ def test_clear(builder):
     assert len(builder.user_messages) == 0
     assert len(builder.messages) == 0
     assert len(builder.image_messages) == 0
-
-
-def test_add_invalid_provider(builder, invalid_config):
-    """Test adding config with invalid provider"""
-    with pytest.raises(ValueError):
-        builder.add_config(invalid_config)
 
 
 def test_repr(builder):
@@ -167,13 +136,13 @@ def test_encode_image_data(builder, mocker):
 
     # Add image and config
     builder.add_image_message("test.jpg")
-    config = PromptConfig(
-        provider_name="openai",
-        model="gpt-4o",
-        max_tokens=3000,
-        temperature=0.0,
-    )
-    builder.add_config(config)
+    # config = PromptConfig(
+    #     provider_name="openai",
+    #     model="gpt-4o",
+    #     max_tokens=3000,
+    #     temperature=0.0,
+    # )
+    # builder.add_config(config)
 
     # Mock image registry to return our mock image data
     mocker.patch.object(
@@ -182,11 +151,11 @@ def test_encode_image_data(builder, mocker):
 
     # Mock get_providers to return our mock provider
     mocker.patch.object(
-        builder, "get_providers", return_value={"openai": mock_provider}
+        builder, "_get_providers", return_value={"openai": mock_provider}
     )
 
     # Encode images
-    registry = builder.encode_image_data()
+    registry = builder._encode_image_data()
 
     # Verify image was resized and encoded
     mock_image_data.resize_and_encode.assert_called_once_with(
@@ -196,30 +165,63 @@ def test_encode_image_data(builder, mocker):
     assert registry is builder.image_registry
 
 
-def test_get_content_for(builder, mocker):
-    """Test getting formatted content for a specific provider"""
+# def test_get_content_for(builder, mocker):
+#     """Test getting formatted content for a specific provider"""
+#     # Mock provider and config
+#     mock_provider = mocker.Mock()
+#     mock_provider.provider_name = "gemini"
+#     mock_provider.get_provider_name.return_value = "gemini"
+#     mock_provider.format_messages.return_value = "formatted content"
+#     mock_provider.get_image_config.return_value = mocker.Mock(needs_download=True)
+
+#     mocker.patch.object(
+#         builder, "get_providers", return_value={"gemini": mock_provider}
+#     )
+
+#     # Add config
+#     config = PromptConfig.default()
+#     config.provider_name = "gemini"
+#     builder.add_config(config)
+
+#     # Add some messages
+#     builder.add_system_message("system message")
+#     builder.add_user_message("user message")
+
+#     # Get content
+#     content = builder.get_content()
+
+#     # Verify content was formatted
+#     assert content == "formatted content"
+
+#     # Get expected messages in correct order
+#     expected_messages = (
+#         builder.messages + builder.user_messages + builder.image_messages
+#     )
+
+#     mock_provider.format_messages.assert_called_once_with(
+#         expected_messages, builder.image_registry, False
+#     )
+
+
+def test_get_prompt(builder, mocker):
+    """Test getting formatted content for openai provider"""
     # Mock provider and config
     mock_provider = mocker.Mock()
-    mock_provider.provider_name = "gemini"
-    mock_provider.get_provider_name.return_value = "gemini"
+    mock_provider.provider_name = "openai"
+    mock_provider.get_provider_name.return_value = "openai"
     mock_provider.format_messages.return_value = "formatted content"
-    mock_provider.get_image_config.return_value = mocker.Mock(needs_download=True)
+    mock_provider.get_image_config.return_value = mocker.Mock(requires_base64=True)
 
     mocker.patch.object(
-        builder, "get_providers", return_value={"gemini": mock_provider}
+        builder, "_get_providers", return_value={"openai": mock_provider}
     )
-
-    # Add config
-    config = PromptConfig.default()
-    config.provider_name = "gemini"
-    builder.add_config(config)
 
     # Add some messages
     builder.add_system_message("system message")
     builder.add_user_message("user message")
 
     # Get content
-    content = builder.get_content_for("gemini")
+    content = builder.get_prompt()
 
     # Verify content was formatted
     assert content == "formatted content"

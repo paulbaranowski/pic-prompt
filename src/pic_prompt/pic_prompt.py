@@ -70,7 +70,7 @@ class PicPrompt:
         #     max_tokens=3000,
         #     temperature=0.0,
         # )
-        self.add_config(prompt_config_openai)
+        self._add_config(prompt_config_openai)
         # self.add_config(prompt_config_anthropic)
         # self.add_config(prompt_config_gemini)
 
@@ -113,31 +113,16 @@ class PicPrompt:
             self.add_image_message(path)
 
     # Config Methods
-    def add_config(self, config: PromptConfig) -> None:
+    def _add_config(self, config: PromptConfig) -> None:
         if config.provider_name not in ProviderNames.get_all_names():
             raise ValueError(f"Provider {config.provider_name} is not supported")
         self.configs[config.provider_name] = config
         # Reset providers list to force re-initialization with new config
         self.providers = {}
 
-    def get_config(self, provider: str) -> PromptConfig:
-        return self.configs.get(provider, PromptConfig.default())
-
-    def remove_config(self, provider: str) -> None:
-        if provider in self.configs:
-            del self.configs[provider]
-            # Reset providers list to force re-initialization
-            self.providers = {}
-
-    def has_config(self, provider: str) -> bool:
-        return provider in self.configs
-
-    async def download_image_data_async(self) -> ImageRegistry:
-        return await self.image_registry.download_image_data_async()
-
-    def encode_image_data(self) -> ImageRegistry:
+    def _encode_image_data(self) -> ImageRegistry:
         for image_data in self.image_registry.get_all_image_data():
-            for provider in self.get_providers().values():
+            for provider in self._get_providers().values():
                 if (
                     provider.get_image_config().requires_base64
                     or image_data.is_local_image()
@@ -148,7 +133,7 @@ class PicPrompt:
                     )
         return self.image_registry
 
-    def get_providers(self) -> Dict[str, Provider]:
+    def _get_providers(self) -> Dict[str, Provider]:
         if len(self.providers) == 0:
             for provider_name, config in self.configs.items():
                 helper = self.provider_factory.get_provider(config.provider_name)
@@ -157,8 +142,7 @@ class PicPrompt:
 
     def build(self):
         """
-        Builds prompts for all configured providers. If you want to load images asynchronously,
-        call the download_image_data_async() method and then the build() method.
+        Builds prompts for all configured providers.
 
         This method:
         1. Downloads any required image data if needed
@@ -167,14 +151,23 @@ class PicPrompt:
         The formatted prompts can be retrieved using get_content_for().
         """
         self.image_registry.download_image_data()
-        self.encode_image_data()
+        self._encode_image_data()
 
-    def get_content_for(self, provider_name: str, preview=False) -> str:
+    # def get_content_for(self, provider_name: str, preview=False) -> str:
+    #     # if len(self.prompts) == 0:
+    #     self.build()
+    #     provider = self._get_providers().get(provider_name)
+    #     if provider is None:
+    #         raise ValueError(f"Provider {provider_name} not found")
+    #     messages = self.messages + self.user_messages + self.image_messages
+    #     return provider.format_messages(messages, self.image_registry, preview)
+
+    def get_prompt(self, preview=False) -> str:
         # if len(self.prompts) == 0:
         self.build()
-        provider = self.get_providers().get(provider_name)
+        provider = self._get_providers().get("openai")
         if provider is None:
-            raise ValueError(f"Provider {provider_name} not found")
+            raise ValueError(f"Provider openai not found")
         messages = self.messages + self.user_messages + self.image_messages
         return provider.format_messages(messages, self.image_registry, preview)
 

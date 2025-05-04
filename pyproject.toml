@@ -4,14 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pic_prompt"
-version = "1.4.0"
-description = "A library for building imageprompts for various LLM providers"
+version = "1.4.1"
+description = "A library for building image prompts for OpenAI. Made for integration with LiteLLM."
 authors = [
     { name = "Paul Baranowski", email = "paulbaranowski@gmail.com" },
 ]
 readme = "README.md"
 requires-python = ">=3.8"
-license = "MIT"
+license = "Apache-2.0"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: Apache Software License",
@@ -24,6 +24,7 @@ dependencies = [
     "pytest-env>=1.1.5",
     "pillow>=10.4.0",
     "litellm>=1.64.1",
+    "asyncio",
 ]
 
 [project.urls]
@@ -48,6 +49,8 @@ packages = ["src/pic_prompt"]
 [dependency-groups]
 dev = [
     "black>=24.8.0",
+    "coverage",
+    "pytest-cov",
 ]
 
 [tool.coverage.report]

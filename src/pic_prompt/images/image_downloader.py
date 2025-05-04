@@ -30,6 +30,12 @@ class ImageDownloader:
         if s3_client is not None:
             self.register_source("s3", S3Source(s3_client))
 
+    @staticmethod
+    def download_image(image_path: str) -> ImageData:
+        """Static method to create a new instance and download an image."""
+        downloader = ImageDownloader()
+        return downloader.download(image_path)
+
     def register_source(self, protocol: str, source: ImageSource) -> None:
         """
         Register an image source for a given protocol.
