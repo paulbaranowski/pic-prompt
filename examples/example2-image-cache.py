@@ -3,7 +3,7 @@ import textwrap
 import logging
 from pic_prompt import PicPrompt
 from pic_prompt.images.image_data import ImageData
-from pic_prompt.images.image_downloader import ImageLoader
+from pic_prompt.images.image_loader import ImageLoader
 
 logging.getLogger("pic_prompt").setLevel(logging.WARNING)
 

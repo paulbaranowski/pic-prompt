@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 from pic_prompt.images.image_data import ImageData
-from pic_prompt.images.image_downloader import ImageLoader
+from pic_prompt.images.image_loader import ImageLoader
 from pic_prompt.images.errors import ImageSourceError, ImageDownloadError
 from pic_prompt.utils.logger import setup_logger
 

@@ -18,7 +18,14 @@ class ImageLoader:
     """Main class for handling image operations."""
 
     def __init__(self, s3_client: Optional[boto3.client] = None) -> None:
-        """Initialize the ImageHandler with an empty dictionary of registered sources."""
+        """Initialize the ImageLoader with built-in image sources.
+
+        Automatically registers local file, HTTP/HTTPS, and optionally S3 sources.
+
+        Args:
+            s3_client (Optional[boto3.client]): AWS S3 client for S3 source registration.
+                If provided, enables S3 image loading capabilities.
+        """
         self.sources: Dict[str, ImageSource] = {}
         self.image_config_registry = ImageConfigRegistry()
         # Automatically register built-in image sources:
@@ -32,7 +39,17 @@ class ImageLoader:
 
     @staticmethod
     def fetch(image_path: str) -> ImageData:
-        """Static method to create a new instance and download an image."""
+        """Static method to create a new instance and download an image.
+
+        A convenience method that creates a new ImageLoader instance and downloads
+        the image in one step.
+
+        Args:
+            image_path (str): The path or URL to the image to download.
+
+        Returns:
+            ImageData: The downloaded image data.
+        """
         loader = ImageLoader()
         return loader.download(image_path)
 

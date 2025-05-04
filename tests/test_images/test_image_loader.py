@@ -2,7 +2,7 @@ import unittest
 import asyncio
 import pytest
 import boto3
-from pic_prompt.images.image_downloader import ImageLoader
+from pic_prompt.images.image_loader import ImageLoader
 from pic_prompt.images.image_data import ImageData
 from pic_prompt.core.errors import ImageProcessingError
 from pic_prompt.images.sources.s3_source import S3Source
