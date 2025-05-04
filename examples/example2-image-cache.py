@@ -1,3 +1,21 @@
+# This example demonstrates how to use pic_prompt to generate image descriptions using GPT-4V
+# It shows two ways to load images:
+# 1. From a local file
+# 2. From a URL
+#
+# The example uses ImageLoader.fetch() to pre-fetch and cache images before sending them
+# to the model. This is useful for:
+# - Avoiding repeated downloads of the same image
+# - Converting images to base64 format required by the API
+# - Handling both local files and URLs with the same interface
+#
+# To run this example:
+# 1. Install required packages: pip install litellm pic_prompt
+# 2. Set up your OpenAI API key as an environment variable: export OPENAI_API_KEY=<your_key>
+# 3. Run:
+#  cd pic-prompt
+#  python -m examples.example2-image-cache
+
 import litellm
 import textwrap
 import logging

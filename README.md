@@ -31,12 +31,24 @@ uv add pic-prompt
 ```
 
 ## Usage
-Set the OPENAI_API_KEY in your environment, typically in a `.env` file. 
+To use the example scripts, set the OPENAI_API_KEY in your environment, typically in a `.env` file. These examples will do two queries each.
 
-Example: examples/example1.py
+You do not need to set the OPENAI_API_KEY to actually use this library.
+
+Example: `examples/example1.py`
+This example fetches a local image and runs a LLM query on it,
+and the fetches a URL and runs an LLM query on it.
 
 Run it using: 
 
 ```
 python -m examples.example1
+```
+
+/Users/paul/dev/pic-prompt/examples/example2-image-cache.pyExample: `examples/example2-image-cache.py`
+This example illustrates how to pre-fetch the images before creating the prompt.
+Run it using: 
+
+```
+python -m examples.example2-image-cache
 ```

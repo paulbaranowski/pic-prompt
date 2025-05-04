@@ -1,3 +1,12 @@
+# This example demonstrates how to use PicPrompt to generate image descriptions using GPT-4V
+# It shows two use cases:
+# 1. Getting a description of a local image file
+# 2. Getting a description of an image from a URL
+# The script uses litellm to make API calls and formats the output with textwrap
+# Run this script with the command:
+# cd pic-prompt
+# python -m examples.example1
+
 from pic_prompt import PicPrompt
 import litellm
 import textwrap
