@@ -1,0 +1,23 @@
+name: Publish Python Package
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+    - name: Build and publish
+      env:
+        UV_PUBLISH_USERNAME: __token__
+        UV_PUBLISH_PASSWORD: ${{ secrets.PAT }}
+      run: |
+        uv build
+        uv publish --index-url https://ghcr.io/v2/${{ github.repository }}/pypi/upload dist/*
