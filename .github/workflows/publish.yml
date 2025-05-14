@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Set up uv
+    - name: Set up uv 
       run: |
         curl -LsSf https://astral.sh/uv/install.sh | sh
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
@@ -20,4 +20,4 @@ jobs:
         UV_PUBLISH_PASSWORD: ${{ secrets.PAT }}
       run: |
         uv build
-        uv publish --index-url https://ghcr.io/v2/${{ github.repository }}/pypi/upload dist/*
+        uv publish --index https://ghcr.io/v2/${{ github.repository }}/pypi/upload dist/*
