@@ -1,4 +1,4 @@
-name: Publish Python Package
+name: Publish Python Package to Gemfury
 
 on:
   push:
@@ -18,14 +18,14 @@ jobs:
       run: uv pip install hatchling twine
     - name: Build package
       run: uv build
-    - name: Publish package
+    - name: Publish package to Gemfury
       env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PAT }}
+        TWINE_USERNAME: fury
+        TWINE_PASSWORD: ${{ secrets.GEMFURY_PUSH_TOKEN }}
       run: |
-        uv run twine upload --repository-url https://ghcr.io/v2/${{ github.repository }}/pypi/upload dist/*
+        uv run twine upload --repository-url https://push.fury.io/paulbaranowski/ dist/* --verbose
     - name: Debug on failure
       if: failure()
       run: |
         ls -la dist/
-        echo "Repository URL used: https://ghcr.io/v2/${{ github.repository }}/pypi/upload"
+        echo "Repository URL used: https://push.fury.io/paulbaranowski/"
