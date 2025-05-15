@@ -10,14 +10,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Set up uv 
+    - name: Set up uv
       run: |
         curl -LsSf https://astral.sh/uv/install.sh | sh
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-    - name: Build and publish
+    - name: Install build dependencies
+      run: uv pip install hatchling twine
+    - name: Build package
+      run: uv build
+    - name: Publish package
       env:
-        UV_PUBLISH_USERNAME: __token__
-        UV_PUBLISH_PASSWORD: ${{ secrets.PAT }}
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PAT }}
       run: |
-        uv build
-        uv publish --index https://ghcr.io/v2/${{ github.repository }}/pypi/upload dist/*
+        twine upload --repository-url https://ghcr.io/v2/${{ github.repository }}/pypi/upload dist/*
+    - name: Debug on failure
+      if: failure()
+      run: |
+        ls -la dist/
+        echo "Repository URL used: https://ghcr.io/v2/${{ github.repository }}/pypi/upload"
