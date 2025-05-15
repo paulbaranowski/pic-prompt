@@ -15,7 +15,7 @@ jobs:
         curl -LsSf https://astral.sh/uv/install.sh | sh
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
     - name: Install build dependencies
-      run: uv pip install hatchling twine
+      run: uv pip install hatchling twine --system
     - name: Build package
       run: uv build
     - name: Publish package
