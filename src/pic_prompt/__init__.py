@@ -20,7 +20,7 @@ from pic_prompt.core import (
     ImageProcessingError,
 )
 from .pic_prompt import PicPrompt
-from pic_prompt.images import ImageRegistry, ImageData, ImageLoader
+from pic_prompt.images import ImageRegistry, ImageData, ImageLoader, ImageResizer
 
 
 __all__ = [
@@ -36,4 +36,5 @@ __all__ = [
     "ImageRegistry",
     "ImageData",
     "ImageLoader",
+    "ImageResizer",
 ]
