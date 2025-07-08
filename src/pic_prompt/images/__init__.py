@@ -13,10 +13,12 @@ from pic_prompt.images.image_loader import ImageLoader
 from pic_prompt.images.errors import ImageSourceError
 from pic_prompt.images.image_registry import ImageRegistry
 from pic_prompt.images.image_data import ImageData
+from pic_prompt.images.image_resizer import ImageResizer
 
 __all__ = [
     "ImageLoader",
     "ImageSourceError",
     "ImageRegistry",
     "ImageData",
+    "ImageResizer",
 ]

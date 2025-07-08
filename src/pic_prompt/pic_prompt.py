@@ -5,6 +5,7 @@ from pic_prompt.images import ImageData
 from pic_prompt.images.image_registry import ImageRegistry
 from pic_prompt.providers.provider_names import ProviderNames
 from pic_prompt.utils.logger import setup_logger
+from typing import Optional
 
 logger = setup_logger(__name__)
 

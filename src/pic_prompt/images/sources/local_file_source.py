@@ -66,7 +66,7 @@ class LocalFileSource(ImageSource):
         Returns:
             bool: True if the file is a local file, False otherwise.
         """
-        return "://" not in path
+        return path is not None and path != "" and "://" not in path
 
     def get_media_type(self, path: str) -> str:
         """

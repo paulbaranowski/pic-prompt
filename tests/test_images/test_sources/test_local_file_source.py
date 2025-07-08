@@ -60,6 +60,8 @@ def test_can_handle(local_source):
     assert local_source.can_handle("http://example.com/image.jpg") is False
     assert local_source.can_handle("https://example.com/image.jpg") is False
     assert local_source.can_handle("s3://bucket/image.jpg") is False
+    assert local_source.can_handle("") is False
+    assert local_source.can_handle(None) is False
 
 
 def test_get_source_type(local_source):

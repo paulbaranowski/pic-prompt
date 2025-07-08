@@ -31,7 +31,7 @@ class ImageData:
     """
 
     def __init__(
-        self, image_path: str, binary_data: bytes = None, media_type: str = None
+        self, image_path: str = None, binary_data: bytes = None, media_type: str = None
     ):
         """Initialize an ImageData instance.
 
