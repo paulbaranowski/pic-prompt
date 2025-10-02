@@ -4,9 +4,13 @@ Pic-Prompt Package
 This package provides core functionality for building prompts and handling images.
 """
 
-from importlib.metadata import version
+try:
+    from importlib.metadata import version
 
-__version__ = version("pic-prompt")
+    __version__ = version("pic-prompt")
+except Exception:
+    # Fallback for development/uninstalled package
+    __version__ = "dev"
 
 
 from pic_prompt.core import (
