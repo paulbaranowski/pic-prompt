@@ -30,9 +30,27 @@ class ImageResizer:
             return img.convert("RGB")
         return img
 
+    def encode_to_jpeg_bytes(self, img: Image.Image, quality: int) -> bytes:
+        """
+        Save image as JPEG with specified quality.
+
+        Args:
+            img: PIL Image object to save.
+            quality: JPEG quality (1-100).
+
+        Returns:
+            Bytes of the JPEG image.
+        """
+        buffer = io.BytesIO()
+        img.save(buffer, format="JPEG", quality=quality)
+        result = buffer.getvalue()
+        buffer.close()
+        return result
+
     def adjust_quality_to_target_size(self, img: Image.Image) -> bytes:
         """
         Adjust JPEG quality to resize image to target size.
+        Starts at 95% quality and decreases by 5% at a time until target is reached.
 
         Args:
             img: PIL Image object to resize.
@@ -40,38 +58,24 @@ class ImageResizer:
         Returns:
             Bytes of the resized image.
         """
-        low_quality = 10
-        high_quality = 95
-        max_iterations = 20
+        quality = 95
+        min_quality = 5
+        quality_step = 5
 
-        for _ in range(max_iterations):
-            mid_quality = (low_quality + high_quality) // 2
+        while quality >= min_quality:
+            # Save as JPEG and check size
+            result = self.encode_to_jpeg_bytes(img, quality)
+            current_size = len(result)
 
-            # Save to bytes buffer to check size
-            buffer = io.BytesIO()
-            img.save(buffer, format="JPEG", quality=mid_quality)
-            current_size = buffer.tell()
+            # If we're at or below target size, return
+            if current_size <= self.target_size:
+                return result
 
-            # Check if within tolerance
-            if abs(current_size - self.target_size) <= self.tolerance:
-                return buffer.getvalue()
-            elif current_size > self.target_size:
-                high_quality = mid_quality - 1
-            else:
-                low_quality = mid_quality + 1
+            # Decrease quality and try again
+            quality -= quality_step
 
-            buffer.close()
-
-            # If quality range converges
-            if low_quality >= high_quality:
-                break
-
-        # Final attempt with mid_quality
-        buffer = io.BytesIO()
-        img.save(buffer, format="JPEG", quality=mid_quality)
-        result = buffer.getvalue()
-        buffer.close()
-        return result
+        # If we've exhausted all quality levels, return the lowest quality version
+        return self.encode_to_jpeg_bytes(img, min_quality)
 
     def resize(self, image_bytes: bytes) -> bytes:
         """
@@ -81,21 +85,30 @@ class ImageResizer:
             image_bytes: Input image as bytes.
 
         Returns:
-            Bytes of the original or resized image.
+            Bytes of the original or resized image (resized images will be JPEG).
         """
+        # If original is already under target, return it as-is
         if not self.needs_resizing(image_bytes):
-            return image_bytes  # Return original bytes if under target size
+            return image_bytes
 
         # Open image from bytes
         with Image.open(io.BytesIO(image_bytes)) as img:
             # Convert to RGB if needed
             img_rgb = self.convert_to_rgb(img)
-            # Resize by adjusting quality
+
+            # Convert to JPEG at 100% quality first to check actual JPEG size
+            jpeg_at_100 = self.encode_to_jpeg_bytes(img_rgb, quality=100)
+
+            # If already under target at 100% quality, return it
+            if len(jpeg_at_100) <= self.target_size:
+                return jpeg_at_100
+
+            # Otherwise, adjust quality to meet target size
             return self.adjust_quality_to_target_size(img_rgb)
 
 
 # Example usage
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     # Create an instance of ImageResizer
     resizer = ImageResizer(target_size=5_000_000)
 
