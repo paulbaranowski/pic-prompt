@@ -1,4 +1,4 @@
-name: Publish Python Package to Gemfury
+name: Publish Python Package
 
 on:
   push:
@@ -6,25 +6,59 @@ on:
       - "v*"
 
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install uv
       uses: astral-sh/setup-uv@v5
     - name: Create virtual environment
       run: uv venv
     - name: Install build dependencies
-      run: uv pip install hatchling twine
+      run: uv pip install hatchling
     - name: Build package
       run: uv build
-    - name: Publish package to Gemfury
+    - name: Upload dist artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist
+        path: dist/
+
+  publish-gemfury:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+    - name: Download dist artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: dist
+        path: dist/
+    - name: Install twine
+      run: uv venv && uv pip install twine
+    - name: Publish to Gemfury
       env:
         TWINE_USERNAME: ${{ secrets.GEMFURY_PUSH_TOKEN }}
       run: |
-        uv run twine upload --repository-url https://push.fury.io/herds/ dist/* -p "" --verbose
+        uv run twine upload --repository-url https://push.fury.io/herds/ dist/* -p "" --verbose --skip-existing
     - name: Debug on failure
       if: failure()
       run: |
         ls -la dist/
         echo "Repository URL used: https://push.fury.io/herds/"
+
+  publish-pypi:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+    - name: Download dist artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: dist
+        path: dist/
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
