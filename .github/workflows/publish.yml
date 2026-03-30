@@ -41,7 +41,7 @@ jobs:
       env:
         TWINE_USERNAME: ${{ secrets.GEMFURY_PUSH_TOKEN }}
       run: |
-        uv run twine upload --repository-url https://push.fury.io/herds/ dist/* -p "" --verbose
+        uv run twine upload --repository-url https://push.fury.io/herds/ dist/* -p "" --verbose --skip-existing
     - name: Debug on failure
       if: failure()
       run: |
