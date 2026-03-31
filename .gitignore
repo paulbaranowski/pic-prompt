@@ -20,6 +20,14 @@ wheels/
 .installed.cfg
 *.egg
 
+# Environment and secrets
+.env
+.pypirc
+
+# Coverage
+.coverage
+htmlcov/
+
 # Virtual Environment
 venv/
 .venv/
