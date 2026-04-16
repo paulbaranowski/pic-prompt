@@ -252,3 +252,55 @@ async def test_get_image_async_client_error(mocker):
 
     assert "Network error downloading" in str(err.value)
     assert "Connection error" in str(err.value)
+
+
+# Ownership tracking and aclose tests
+
+
+def test_owns_async_client_when_no_session_provided():
+    """Test that _owns_async_client is True when no session is passed"""
+    source = HttpSource()
+    assert source._owns_async_client is True
+    assert source.async_http_client is None
+
+
+def test_does_not_own_async_client_when_session_provided():
+    """Test that _owns_async_client is False when a session is passed"""
+    session = DummyAiohttpClientSession()
+    source = HttpSource(async_http_client=session)
+    assert source._owns_async_client is False
+    assert source.async_http_client is session
+
+
+@pytest.mark.asyncio
+async def test_aclose_closes_owned_session(mocker):
+    """Test that aclose() closes a session we created internally"""
+    source = HttpSource()
+    # Simulate lazy creation by assigning a mock session
+    mock_session = mocker.AsyncMock()
+    source.async_http_client = mock_session
+    source._owns_async_client = True
+
+    await source.aclose()
+
+    mock_session.close.assert_awaited_once()
+    assert source.async_http_client is None
+
+
+@pytest.mark.asyncio
+async def test_aclose_does_not_close_external_session(mocker):
+    """Test that aclose() does NOT close a caller-provided session"""
+    mock_session = mocker.AsyncMock()
+    source = HttpSource(async_http_client=mock_session)
+
+    await source.aclose()
+
+    mock_session.close.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_aclose_safe_when_no_session_exists():
+    """Test that aclose() is safe to call when no session was ever created"""
+    source = HttpSource()
+    # Should not raise
+    await source.aclose()

@@ -69,6 +69,17 @@ def test_from_dict_defaults():
     assert config.needs_download is False
 
 
+def test_default_supported_formats_not_shared():
+    """Test that mutating one instance's default formats doesn't affect another (mutable default regression)"""
+    config1 = ImageConfig()
+    config2 = ImageConfig()
+
+    config1.supported_formats.append("gif")
+
+    assert "gif" in config1.supported_formats
+    assert "gif" not in config2.supported_formats
+
+
 def test_property_getters(default_config):
     """Test property getter methods"""
     assert isinstance(default_config.requires_base64, bool)

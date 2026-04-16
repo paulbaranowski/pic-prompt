@@ -92,6 +92,34 @@ def test_clear(image_registry, sample_image_data):
     assert image_registry.get_image_data("test/image.jpg") is None
 
 
+def test_has_local_images_empty(image_registry):
+    """Test that a new registry reports no local images"""
+    assert image_registry.has_local_images() is False
+
+
+def test_has_local_images_with_url(image_registry):
+    """Test that adding an HTTP URL does not flag local images"""
+    image_registry.add_image_path("https://example.com/image.jpg")
+    assert image_registry.has_local_images() is False
+
+
+def test_has_local_images_with_local_path(image_registry):
+    """Test that adding a local path flags local images"""
+    image_registry.add_image_path("/tmp/image.jpg")
+    assert image_registry.has_local_images() is True
+
+
+def test_clear_resets_has_local_images(image_registry):
+    """Test that clear() resets the _has_local_images flag (regression for bug fix)"""
+    image_registry.add_image_path("/tmp/image.jpg")
+    assert image_registry.has_local_images() is True
+
+    image_registry.clear()
+
+    assert image_registry.num_images() == 0
+    assert image_registry.has_local_images() is False
+
+
 def test_repr(image_registry, sample_image_data):
     """Test string representation of image registry"""
     # Empty registry
