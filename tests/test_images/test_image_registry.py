@@ -103,15 +103,15 @@ def test_has_local_images_with_url(image_registry):
     assert image_registry.has_local_images() is False
 
 
-def test_has_local_images_with_local_path(image_registry):
+def test_has_local_images_with_local_path(image_registry, tmp_path):
     """Test that adding a local path flags local images"""
-    image_registry.add_image_path("/tmp/image.jpg")
+    image_registry.add_image_path(str(tmp_path / "image.jpg"))
     assert image_registry.has_local_images() is True
 
 
-def test_clear_resets_has_local_images(image_registry):
+def test_clear_resets_has_local_images(image_registry, tmp_path):
     """Test that clear() resets the _has_local_images flag (regression for bug fix)"""
-    image_registry.add_image_path("/tmp/image.jpg")
+    image_registry.add_image_path(str(tmp_path / "image.jpg"))
     assert image_registry.has_local_images() is True
 
     image_registry.clear()
