@@ -29,6 +29,9 @@ class Provider(ABC):
     """
 
     def __init__(self) -> None:
+        # Cached at init time. Note: get_image_config() is also called at encoding
+        # time, creating a fresh instance. If get_image_config() is overridden to be
+        # stateful, these may diverge.
         self._image_config: ImageConfig = self.get_image_config()
         self._prompt_config: Union[PromptConfig, None] = None
 
@@ -55,6 +58,13 @@ class Provider(ABC):
     ) -> list[dict[str, Any]]:
         """
         Format a list of messages based on the provider's requirements.
+
+        Returns:
+            list[dict[str, Any]] — A list of message dicts in OpenAI format, each
+            with "role" (str) and "content" (list[dict]) keys.
+
+            Note: ProviderGemini overrides this to return a flat content list
+            instead of role-keyed message dicts.
         """
         prompt_messages = []
         for message in messages:
