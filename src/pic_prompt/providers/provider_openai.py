@@ -2,7 +2,7 @@
 Provider helper implementation for OpenAI.
 """
 
-from typing import List
+from typing import Any, List
 
 from pic_prompt.providers.provider import Provider
 from pic_prompt.core.image_config import ImageConfig
@@ -38,8 +38,8 @@ class ProviderOpenAI(Provider):
         )
 
     def _format_content_image(
-        self, content: PromptContent, all_image_data: ImageRegistry, preview=False
-    ) -> str:
+        self, content: PromptContent, all_image_data: ImageRegistry, preview: bool = False
+    ) -> dict[str, Any]:
         """
         Format an image content based on the provider's requirements.
 
@@ -63,7 +63,7 @@ class ProviderOpenAI(Provider):
                 "image_url": {"url": content.data},
             }
 
-    def _format_content_text(self, content: PromptContent) -> str:
+    def _format_content_text(self, content: PromptContent) -> dict[str, Any]:
         """
         Format a text content based on the provider's requirements.
         """

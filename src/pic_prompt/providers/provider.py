@@ -3,7 +3,7 @@ Base provider helper interface for handling prompt formatting and provider-speci
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Union
+from typing import Any, Dict, List, Union
 
 from pic_prompt.core.image_config import ImageConfig
 from pic_prompt.core.prompt_config import PromptConfig
@@ -51,8 +51,8 @@ class Provider(ABC):
         self,
         messages: List[PromptMessage],
         all_image_data: ImageRegistry,
-        preview=False,
-    ) -> str:
+        preview: bool = False,
+    ) -> list[dict[str, Any]]:
         """
         Format a list of messages based on the provider's requirements.
         """
@@ -66,7 +66,7 @@ class Provider(ABC):
         return prompt_messages
 
     def format_content(
-        self, message: PromptMessage, all_image_data: ImageRegistry, preview=False
+        self, message: PromptMessage, all_image_data: ImageRegistry, preview: bool = False
     ) -> list:
         """
         Format all content based on the provider's requirements.
@@ -83,15 +83,15 @@ class Provider(ABC):
 
     @abstractmethod
     def _format_content_image(
-        self, content: PromptContent, all_image_data: ImageRegistry, preview=False
-    ) -> str:
+        self, content: PromptContent, all_image_data: ImageRegistry, preview: bool = False
+    ) -> dict[str, Any]:
         """
         Format an image message based on the provider's requirements.
         """
         pass
 
     @abstractmethod
-    def _format_content_text(self, content: PromptContent) -> str:
+    def _format_content_text(self, content: PromptContent) -> dict[str, Any]:
         """
         Format a text message based on the provider's requirements.
         """

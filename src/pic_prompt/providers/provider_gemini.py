@@ -2,7 +2,7 @@
 Provider helper implementation for Gemini.
 """
 
-from typing import List
+from typing import Any, List
 
 from pic_prompt.providers.provider import Provider
 from pic_prompt.core.image_config import ImageConfig
@@ -45,8 +45,8 @@ class ProviderGemini(Provider):
         self,
         messages: List[PromptMessage],
         all_image_data: ImageRegistry,
-        preview=False,
-    ) -> str:
+        preview: bool = False,
+    ) -> list[dict[str, Any]]:
         """
         Format a list of messages based on Gemini's requirements.
 
@@ -86,8 +86,8 @@ class ProviderGemini(Provider):
         return formatted_contents
 
     def _format_content_image(
-        self, content: PromptContent, all_image_data: ImageRegistry, preview=False
-    ) -> str:
+        self, content: PromptContent, all_image_data: ImageRegistry, preview: bool = False
+    ) -> dict[str, Any]:
         """
         Format an image content based on Gemini's requirements.
 
@@ -105,7 +105,7 @@ class ProviderGemini(Provider):
             },
         }
 
-    def _format_content_text(self, content: PromptContent) -> str:
+    def _format_content_text(self, content: PromptContent) -> dict[str, Any]:
         """
         Format a text content based on Gemini's requirements.
         """

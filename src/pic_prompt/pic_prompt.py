@@ -1,11 +1,10 @@
-from typing import List, Dict
+from typing import Any, List, Dict, Optional
 from pic_prompt.core import PromptMessage, PromptConfig
 from pic_prompt.providers import ProviderFactory, Provider
 from pic_prompt.images import ImageData
 from pic_prompt.images.image_registry import ImageRegistry
 from pic_prompt.providers.provider_names import ProviderNames
 from pic_prompt.utils.logger import setup_logger
-from typing import Optional
 
 logger = setup_logger(__name__)
 
@@ -250,7 +249,7 @@ class PicPrompt:
     #     messages = self.messages + self.user_messages + self.image_messages
     #     return provider.format_messages(messages, self.image_registry, preview)
 
-    def get_prompt(self, preview=False) -> str:
+    def get_prompt(self, preview: bool = False) -> list[dict[str, Any]]:
         """
         Get the formatted prompt for the OpenAI provider.
 
@@ -264,7 +263,7 @@ class PicPrompt:
             preview (bool, optional): Whether to generate a preview version. Defaults to False.
 
         Returns:
-            str: The formatted prompt string for OpenAI
+            list[dict[str, Any]]: A list of message dicts in OpenAI format
 
         Raises:
             ValueError: If the OpenAI provider is not found

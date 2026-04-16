@@ -181,14 +181,14 @@ class ImageData:
             )
         return self.provider_encoded_images.get(provider_name)
 
-    def encode_as_base64(self, provider_name: str = "openai") -> bytes:
+    def encode_as_base64(self, provider_name: str = "openai") -> Optional[str]:
         """Encode the binary image data as base64 and store it for a provider.
 
         Args:
             provider_name (str, optional): Name of the provider to store encoded data for. Defaults to "openai".
 
         Returns:
-            bytes: The base64 encoded image data if binary data exists, None otherwise
+            Optional[str]: The base64 encoded image data as a string if binary data exists, None otherwise
         """
         if self.binary_data is not None:
             encoded_data = base64.b64encode(self.binary_data).decode("utf-8")
@@ -198,7 +198,7 @@ class ImageData:
 
     def resize_and_encode(
         self, max_size: int, provider_name: str = "openai", resizer: ImageResizer = None
-    ) -> str:
+    ) -> "ImageData":
         """
         Resize and encode an image to meet provider size requirements.
 
