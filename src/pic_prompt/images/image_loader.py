@@ -1,10 +1,11 @@
 """
-Image handler module.
+Download orchestrator for images. ImageLoader detects the appropriate source
+strategy (local file, HTTP/HTTPS, S3) for a given path and delegates downloading
+to the matching ImageSource implementation. Used by
+ImageRegistry.download_image_data() to hydrate image paths into binary data.
 """
 
-import boto3
-
-from typing import Dict, Union, Optional
+from typing import Any, Dict, Union, Optional
 from pic_prompt.images.sources.image_source import ImageSource
 from pic_prompt.core.errors import ImageProcessingError
 from pic_prompt.images.sources.local_file_source import LocalFileSource
@@ -17,14 +18,16 @@ from pic_prompt.core.image_config import ImageConfigRegistry
 class ImageLoader:
     """Main class for handling image operations."""
 
-    def __init__(self, s3_client: Optional[boto3.client] = None) -> None:
+    def __init__(self, s3_client: Optional[Any] = None) -> None:
         """Initialize the ImageLoader with built-in image sources.
 
         Automatically registers local file, HTTP/HTTPS, and optionally S3 sources.
 
         Args:
-            s3_client (Optional[boto3.client]): AWS S3 client for S3 source registration.
-                If provided, enables S3 image loading capabilities.
+            s3_client: Optional S3-compatible client for S3 source registration.
+                Expected to implement get_object(Bucket=str, Key=str) -> dict
+                with Body.read() -> bytes. If provided, enables S3 image loading
+                capabilities.
         """
         self.sources: Dict[str, ImageSource] = {}
         self.image_config_registry = ImageConfigRegistry()
@@ -100,14 +103,9 @@ class ImageLoader:
             f"No registered image source can handle path: {path}"
         )
 
-    def is_media_type_supported(self, provider_name: str) -> bool:
-        """
-        Check if the media type is supported by the image config registry.
-        """
-        return (
-            self.media_type
-            in self.image_config_registry.get_config(provider_name).supported_formats
-        )
+    # is_media_type_supported was removed: it referenced self.media_type which
+    # does not exist on ImageLoader (media_type lives on ImageData). No callers
+    # depended on it.
 
     def download(self, path: str) -> ImageData:
         """
