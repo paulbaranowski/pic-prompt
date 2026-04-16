@@ -104,9 +104,11 @@ class ImageData:
     def binary_data(self, value: bytes):
         """Set the binary data of the image.
 
-        This method also attempts to create an Image object from the binary data
-        if the value is not None. If the image data is invalid or cannot be opened,
-        it raises an ImageProcessingError.
+        Side effect: When value is not None, constructs a PIL Image object from
+        the binary data and assigns it to self.image_obj. Raises
+        ImageProcessingError if the data cannot be parsed as an image. This means
+        any assignment to binary_data (including from resize_and_encode) will
+        rebuild the PIL Image object as well.
 
         Args:
             value (bytes): The raw binary data of the image
@@ -206,6 +208,11 @@ class ImageData:
         then encode it as base64. The resizing is handled by an ImageResizer instance
         which will attempt various strategies to reduce the file size while maintaining
         image quality.
+
+        Warning: This method destructively replaces self.binary_data with the
+        resized/re-encoded JPEG bytes. The original binary data is lost after this
+        call. Also triggers the binary_data setter side effect, rebuilding
+        self.image_obj from the new bytes.
 
         Args:
             max_size (int): Maximum allowed size in bytes for the binary image data
