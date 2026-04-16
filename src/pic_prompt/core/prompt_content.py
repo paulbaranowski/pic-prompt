@@ -77,6 +77,6 @@ class PromptContent:
         """Set the type"""
         try:
             MessageType(message_type)
-        except ValueError:
-            raise ValueError(f"Invalid message type: {message_type}")
+        except ValueError as exc:
+            raise ValueError(f"Invalid message type: {message_type}") from exc
         self._type = message_type

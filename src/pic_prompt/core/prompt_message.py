@@ -96,8 +96,8 @@ class PromptMessage:
         """Set the message role"""
         try:
             MessageRole(role)
-        except ValueError:
-            raise ValueError(f"Invalid message role: {role}")
+        except ValueError as exc:
+            raise ValueError(f"Invalid message role: {role}") from exc
         self._role = role
 
     def __repr__(self) -> str:
