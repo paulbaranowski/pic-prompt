@@ -46,7 +46,7 @@ class PromptContent:
 
     def __init__(self, content: str, type: str):
         self._data = content
-        self._type: str = type
+        self.type = type
 
     def __repr__(self) -> str:
         """String representation of the content"""
@@ -76,7 +76,7 @@ class PromptContent:
     def type(self, message_type: str) -> None:
         """Set the type"""
         try:
-            MessageType(message_type)
+            validated = MessageType(message_type)
         except ValueError as exc:
             raise ValueError(f"Invalid message type: {message_type}") from exc
-        self._type = message_type
+        self._type = validated
