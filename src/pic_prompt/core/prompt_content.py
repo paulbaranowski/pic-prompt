@@ -71,6 +71,6 @@ class PromptContent:
     @type.setter
     def type(self, message_type: str) -> None:
         """Set the type"""
-        if message_type not in MessageType.ALLOWED_TYPES:
+        if message_type not in MessageType._value2member_map_:
             raise ValueError(f"Invalid message type: {message_type}")
         self._type = message_type

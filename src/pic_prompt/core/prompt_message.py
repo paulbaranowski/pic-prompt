@@ -94,10 +94,10 @@ class PromptMessage:
     @role.setter
     def role(self, role: str) -> None:
         """Set the message role"""
-        if role not in MessageRole.ALLOWED_ROLES:
+        if role not in MessageRole._value2member_map_:
             raise ValueError(f"Invalid message role: {role}")
         self._role = role
 
     def __repr__(self) -> str:
         """String representation of the message"""
-        return f"PromptMessage(" f"role={self.role!r}, " f"content={self.content!r})"
+        return f"PromptMessage(" f"role={str(self.role)!r}, " f"content={self.content!r})"

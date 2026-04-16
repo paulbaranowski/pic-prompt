@@ -4,7 +4,7 @@ from pic_prompt.core.message_role import MessageRole
 
 def test_message_role_values():
     """Test that message role values are correct"""
-    values = MessageRole.ALLOWED_ROLES
+    values = list(MessageRole)
     assert "system" in values
     assert "user" in values
     assert "assistant" in values
@@ -38,12 +38,14 @@ def test_message_role_function():
     assert MessageRole.FUNCTION == "function"
 
 
-def test_message_role_allowed_roles():
-    """Test that allowed roles contains expected values"""
-    assert MessageRole.ALLOWED_ROLES == [
-        "system",
-        "user",
-        "assistant",
-        "image",
-        "function",
-    ]
+def test_message_role_is_str_enum():
+    """Test that MessageRole is a str Enum"""
+    assert issubclass(MessageRole, str)
+    for role in MessageRole:
+        assert isinstance(role, str)
+
+
+def test_message_role_membership():
+    """Test Enum membership checks"""
+    assert "system" in MessageRole._value2member_map_
+    assert "invalid" not in MessageRole._value2member_map_

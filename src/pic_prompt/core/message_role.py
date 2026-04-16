@@ -1,8 +1,10 @@
 from enum import Enum
 
 
-class MessageRole:
-    """Types of messages that can be included in a prompt"""
+class MessageRole(str, Enum):
+    """Defines the sender roles for a prompt message (system, user, assistant,
+    image, function). The image role is a pic-prompt internal role used during
+    prompt building."""
 
     SYSTEM = "system"
     USER = "user"
@@ -10,4 +12,5 @@ class MessageRole:
     IMAGE = "image"
     FUNCTION = "function"
 
-    ALLOWED_ROLES = [SYSTEM, USER, ASSISTANT, IMAGE, FUNCTION]
+    def __str__(self) -> str:
+        return self.value
