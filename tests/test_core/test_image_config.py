@@ -65,7 +65,7 @@ def test_from_dict_defaults():
     config = ImageConfig.from_dict(data)
     assert config.requires_base64 is True
     assert config.max_size == 5_000_000
-    assert config.supported_formats is None
+    assert config.supported_formats == ["png", "jpeg"]
     assert config.needs_download is False
 
 
