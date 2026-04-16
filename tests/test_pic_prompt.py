@@ -31,7 +31,6 @@ def test_init_default():
     builder = PicPrompt()
     assert len(builder.configs) == 1
     assert len(builder.messages) == 0
-    assert len(builder.prompts) == 0
     assert builder.image_registry.num_images() == 0
 
 
@@ -44,7 +43,6 @@ def test_init_custom(custom_config):
     assert builder.configs["openai"] == custom_config
     assert builder.configs["openai"].model == "foobar"
     assert len(builder.messages) == 0
-    assert len(builder.prompts) == 0
     assert builder.image_registry.num_images() == 0
 
 

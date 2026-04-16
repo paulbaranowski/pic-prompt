@@ -48,7 +48,6 @@ class PicPrompt:
         - Message lists for system, user and image messages
         - Provider factory and initialized providers
         - Image registry for downloaded image data
-        - Prompt cache
         """
         self.configs: Dict[str, PromptConfig] = {}
 
@@ -66,9 +65,6 @@ class PicPrompt:
         # This is the registry of all the downloaded image data
         self.image_registry = ImageRegistry()
 
-        # This is the cache of all the prompts
-        self.prompts: Dict[str, str] = {}
-
     def init_all_providers(self) -> None:
         prompt_config_openai = PromptConfig(
             provider_name="openai",
@@ -76,6 +72,9 @@ class PicPrompt:
             max_tokens=3000,
             temperature=0.0,
         )
+        # Only OpenAI is initialized. LiteLLM translates OpenAI-format prompts
+        # to other providers at call time. Anthropic/Gemini providers exist but
+        # are not registered by default.
         # prompt_config_anthropic = PromptConfig(
         #     provider_name="anthropic",
         #     model="claude-3-opus-20240229",
@@ -176,6 +175,9 @@ class PicPrompt:
         """
         Add a provider configuration to the prompt builder.
 
+        Note: Resets the providers cache (self.providers = {}) to force
+        re-initialization with the new config.
+
         Args:
             config (PromptConfig): The provider configuration to add
 
@@ -235,19 +237,10 @@ class PicPrompt:
         1. Downloads any required image data if needed
         2. Encodes the image data according to each provider's requirements
 
-        The formatted prompts can be retrieved using get_content_for().
+        The formatted prompts can be retrieved using get_prompt().
         """
         self.image_registry.download_image_data()
         self._encode_image_data()
-
-    # def get_content_for(self, provider_name: str, preview=False) -> str:
-    #     # if len(self.prompts) == 0:
-    #     self.build()
-    #     provider = self._get_providers().get(provider_name)
-    #     if provider is None:
-    #         raise ValueError(f"Provider {provider_name} not found")
-    #     messages = self.messages + self.user_messages + self.image_messages
-    #     return provider.format_messages(messages, self.image_registry, preview)
 
     def get_prompt(self, preview: bool = False) -> list[dict[str, Any]]:
         """
@@ -268,7 +261,6 @@ class PicPrompt:
         Raises:
             ValueError: If the OpenAI provider is not found
         """
-        # if len(self.prompts) == 0:
         self.build()
         provider = self._get_providers().get("openai")
         if provider is None:
