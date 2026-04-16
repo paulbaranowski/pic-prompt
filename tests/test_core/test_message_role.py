@@ -47,5 +47,8 @@ def test_message_role_is_str_enum():
 
 def test_message_role_membership():
     """Test Enum membership checks"""
-    assert "system" in MessageRole._value2member_map_
-    assert "invalid" not in MessageRole._value2member_map_
+    # Valid value can be constructed
+    assert MessageRole("system") == MessageRole.SYSTEM
+    # Invalid value raises
+    with pytest.raises(ValueError):
+        MessageRole("invalid")

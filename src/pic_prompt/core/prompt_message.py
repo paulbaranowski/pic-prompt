@@ -94,7 +94,9 @@ class PromptMessage:
     @role.setter
     def role(self, role: str) -> None:
         """Set the message role"""
-        if role not in MessageRole._value2member_map_:
+        try:
+            MessageRole(role)
+        except ValueError:
             raise ValueError(f"Invalid message role: {role}")
         self._role = role
 

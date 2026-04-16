@@ -29,5 +29,8 @@ def test_message_type_is_str_enum():
 
 def test_message_type_membership():
     """Test Enum membership checks"""
-    assert "image" in MessageType._value2member_map_
-    assert "invalid" not in MessageType._value2member_map_
+    # Valid value can be constructed
+    assert MessageType("image") == MessageType.IMAGE
+    # Invalid value raises
+    with pytest.raises(ValueError):
+        MessageType("invalid")
