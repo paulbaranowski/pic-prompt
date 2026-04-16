@@ -48,11 +48,13 @@ class ProviderGemini(Provider):
         preview: bool = False,
     ) -> list[dict[str, Any]]:
         """
-        Format a list of messages based on Gemini's requirements.
+        Overrides Provider.format_messages() to produce Gemini format: a flat
+        list of content dicts (no role keys), with all image parts placed before
+        text parts. Return type differs from base class (flat list of content
+        dicts vs role-keyed message dicts with "role" and "content" keys).
 
-        Returns a dictionary with a "contents" key containing a list of formatted content from messages.
-        The content formatting is handled by format_content().
-        Image parts are placed first in the formatted contents.
+        Image content dicts have the shape: {"inline_data": {"mime_type": str, "data": str}}.
+        Text content dicts have the shape: {"text": str}.
         """
         formatted_contents = []
         image_messages = []

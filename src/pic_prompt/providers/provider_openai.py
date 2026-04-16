@@ -15,12 +15,19 @@ logger = setup_logger(__name__)
 
 class ProviderOpenAI(Provider):
     """
-    ProviderHelper implementation for OpenAI.
+    Provider implementation for OpenAI.
 
-    Default image configuration:
+    Default image configuration (from get_image_config()):
       - requires_base64: True
       - max_size: 20,000,000 (20MB)
-      - supported_formats: ["png", "jpeg", "gif"]
+      - supported_formats: ["png", "jpeg", "jpg"]
+      - needs_download: True
+
+    Note: ImageConfigRegistry in image_config.py holds a separate OpenAI config
+    (requires_base64=False, max_size=5MB, needs_download=False) used by
+    ImageLoader.download_and_encode(). The config from get_image_config() here
+    is used by PicPrompt._encode_image_data(). The two configs serve different
+    stages of the pipeline and may have intentionally different values.
     """
 
     def __init__(self) -> None:
