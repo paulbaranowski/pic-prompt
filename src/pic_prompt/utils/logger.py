@@ -1,3 +1,7 @@
+"""Logging utilities for pic_prompt. setup_logger() returns a module-scoped logger
+and only attaches a handler if neither the logger nor the root logger already has one.
+disable_logging() silences all pic_prompt output globally."""
+
 import logging
 import sys
 from typing import Optional

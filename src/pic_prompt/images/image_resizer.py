@@ -1,3 +1,7 @@
+"""JPEG quality-reduction resizer. Converts oversized images to JPEG and iteratively
+lowers quality from 95% to 5% in 5% steps until the byte size falls below the
+provider max_size limit. Pixel dimensions are never changed."""
+
 from PIL import Image
 import io
 from typing import Dict, Any, Tuple

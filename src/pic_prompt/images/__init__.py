@@ -2,7 +2,7 @@
 Images module for pic_prompt.
 
 This module provides functionality for image handling including:
-- ImageHandler for processing images.
+- ImageLoader for processing images.
 - ImageSourceError for image-specific errors.
 
 The sources subpackage contains implementations for different image sources:

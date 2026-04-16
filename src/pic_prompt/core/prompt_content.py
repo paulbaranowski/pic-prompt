@@ -1,3 +1,7 @@
+"""Defines PromptContent, the atomic unit of content within a PromptMessage -- either
+a text string or an image path/URL. Used by Provider.format_content() to produce
+provider-specific content blocks."""
+
 from pic_prompt.core.message_type import MessageType
 
 
