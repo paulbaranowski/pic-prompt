@@ -2,7 +2,7 @@
 Loads images from S3.
 """
 
-from typing import Tuple
+from typing import Any, Tuple
 import mimetypes
 from pic_prompt.images.sources.image_source import ImageSource
 from pic_prompt.images.errors import ImageSourceError
@@ -11,15 +11,18 @@ from pic_prompt.images.errors import ImageSourceError
 class S3Source(ImageSource):
     """Loads images from S3"""
 
-    def __init__(self, s3_client, timeout: int = 30) -> None:
+    def __init__(self, s3_client: Any, timeout: int = 30) -> None:
         """
         Initialize the S3Source.
 
         Args:
             s3_client: A client capable of interacting with S3 (synchronous and/or asynchronous).
+                Expected interface: get_object(Bucket=str, Key=str) for sync,
+                same with await for async. The response must have a 'Body' key
+                whose value supports .read() -> bytes (sync) or await .read() -> bytes (async).
             timeout (int): Timeout value in seconds.
         """
-        self.s3_client = s3_client
+        self.s3_client: Any = s3_client
         self.timeout = timeout
 
     def get_source_type(self) -> str:

@@ -78,6 +78,8 @@ class HttpSource(ImageSource):
             ImageSourceError: If the image cannot be downloaded.
         """
         # Lazy initialization of async_http_client
+        # Note: This session is never explicitly closed. For long-lived processes,
+        # provide your own session via the constructor and manage its lifecycle externally.
         if self.async_http_client is None:
             self.async_http_client = aiohttp.ClientSession(headers=self.headers)
 
