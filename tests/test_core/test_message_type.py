@@ -4,7 +4,7 @@ from pic_prompt.core.message_type import MessageType
 
 def test_message_type_values():
     """Test that message type values are correct"""
-    values = MessageType.ALLOWED_TYPES
+    values = list(MessageType)
     assert "image" in values
     assert "text" in values
     assert len(values) == 2
@@ -20,6 +20,17 @@ def test_message_type_text():
     assert MessageType.TEXT == "text"
 
 
-def test_message_type_allowed_types():
-    """Test that allowed types contains expected values"""
-    assert MessageType.ALLOWED_TYPES == ["image", "text"]
+def test_message_type_is_str_enum():
+    """Test that MessageType is a str Enum"""
+    assert issubclass(MessageType, str)
+    for mt in MessageType:
+        assert isinstance(mt, str)
+
+
+def test_message_type_membership():
+    """Test Enum membership checks"""
+    # Valid value can be constructed
+    assert MessageType("image") == MessageType.IMAGE
+    # Invalid value raises
+    with pytest.raises(ValueError):
+        MessageType("invalid")

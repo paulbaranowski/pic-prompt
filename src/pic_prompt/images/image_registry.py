@@ -8,6 +8,11 @@ logger = setup_logger(__name__)
 
 
 class ImageRegistry:
+    """In-memory store mapping image paths (URL, local path, or S3 URI) to ImageData
+    objects. Tracks whether any registered image is local (flag set at add time, not
+    download time). Provides download_image_data() and download_image_data_async() to
+    hydrate registered paths into binary data via ImageLoader."""
+
     def __init__(self):
         self.image_data: Dict[str, ImageData] = {}
         self.image_downloader = ImageLoader()
@@ -53,12 +58,13 @@ class ImageRegistry:
 
     def clear(self):
         self.image_data = {}
+        self._has_local_images = False
 
     def __repr__(self) -> str:
         return f"ImageRegistry(image_data={self.image_data})"
 
     def download_image_data(
-        self, downloader=None, raise_on_error=True
+        self, downloader: Optional[ImageLoader] = None, raise_on_error: bool = True
     ) -> "ImageRegistry":
         """
         Downloads images if needed and stores them in the image registry.
@@ -101,7 +107,7 @@ class ImageRegistry:
                     return self
         return self
 
-    async def download_image_data_async(self, downloader=None) -> "ImageRegistry":
+    async def download_image_data_async(self, downloader: Optional[ImageLoader] = None) -> "ImageRegistry":
         """
         Asynchronously downloads images if needed and stores them in the image registry.
 

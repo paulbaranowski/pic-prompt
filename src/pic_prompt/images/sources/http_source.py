@@ -19,8 +19,10 @@ class HttpSource(ImageSource):
     def __init__(
         self, async_http_client: aiohttp.ClientSession = None, timeout: int = 30
     ) -> None:
-        # Lazy initialization: do not create a ClientSession unless async calls are made
+        # If caller provides a session, they own it and are responsible for closing it.
+        # If we create one lazily, we own it and aclose() will close it.
         self.async_http_client = async_http_client
+        self._owns_async_client: bool = async_http_client is None
         self.timeout = timeout
         # Default headers to help with rate limiting and server policies
         self.headers = {"User-Agent": "pic-prompt/1.0"}
@@ -77,9 +79,10 @@ class HttpSource(ImageSource):
         Raises:
             ImageSourceError: If the image cannot be downloaded.
         """
-        # Lazy initialization of async_http_client
+        # Lazy initialization: we create the session, so we own it
         if self.async_http_client is None:
             self.async_http_client = aiohttp.ClientSession(headers=self.headers)
+            self._owns_async_client = True
 
         try:
             async with self.async_http_client.get(
@@ -100,6 +103,16 @@ class HttpSource(ImageSource):
             raise e
         except aiohttp.ClientError as e:
             raise ImageSourceError(f"Network error downloading {url}: {e}")
+
+    async def aclose(self) -> None:
+        """Close the async HTTP session if we own it.
+
+        Only closes the session if it was created internally (not passed via constructor).
+        Safe to call multiple times or when no session exists.
+        """
+        if self._owns_async_client and self.async_http_client is not None:
+            await self.async_http_client.close()
+            self.async_http_client = None
 
     def can_handle(self, path: str) -> bool:
         """

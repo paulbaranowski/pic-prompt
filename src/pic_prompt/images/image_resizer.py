@@ -1,3 +1,7 @@
+"""JPEG quality-reduction resizer. Converts oversized images to JPEG and iteratively
+lowers quality from 95% to 5% in 5% steps until the byte size falls below the
+provider max_size limit. Pixel dimensions are never changed."""
+
 from PIL import Image
 import io
 from typing import Dict, Any, Tuple
@@ -89,7 +93,15 @@ class ImageResizer:
             img: PIL Image object to resize.
 
         Returns:
-            Tuple of (bytes of resized image, dict with metadata including passes, final_quality, etc.)
+            Tuple of (bytes of resized image, info dict with the following keys):
+                - passes (int): Number of quality reduction iterations attempted.
+                - final_quality (int): The JPEG quality level used for the final output.
+                - initial_quality (int): Starting quality level (always 95).
+                - quality_step (int): Quality decrement per pass (always 5).
+                - min_quality (int): Lowest allowed quality (always 5).
+                - final_size (int): Byte size of the returned image.
+                - target_size (int): The target byte size threshold.
+                - resized (bool): Always True (this method only runs when resizing is needed).
         """
         quality = 95
         min_quality = 5
@@ -173,7 +185,20 @@ class ImageResizer:
             image_bytes: Input image as bytes.
 
         Returns:
-            Tuple of (bytes of resized image, dict with metadata).
+            Tuple of (bytes of resized image, info dict with the following keys):
+                - passes (int): Number of quality reduction iterations (0 if no resizing needed).
+                - final_quality (int | None): JPEG quality used, or None if not resized.
+                - initial_quality (int | None): Starting quality (95), or None if not resized.
+                - quality_step (int | None): Quality decrement per pass, or None if not resized.
+                - min_quality (int | None): Lowest allowed quality, or None if not resized.
+                - final_size (int): Byte size of the returned image.
+                - original_size (int): Byte size of the input image.
+                - target_size (int): The target byte size threshold.
+                - resized (bool): Whether the image was actually resized.
+                - format_converted (bool): Whether the color mode was converted (e.g., RGBA -> RGB).
+                - original_format (str): Original image format (e.g., 'PNG', 'JPEG'). Only present when resized.
+                - final_format (str): Output format (always 'JPEG'). Only present when resized.
+                - dimensions (tuple[int, int]): Image (width, height) in pixels. Only present when resized.
         """
         original_size = len(image_bytes)
 
@@ -237,23 +262,3 @@ class ImageResizer:
                 }
             )
             return result_bytes, resize_info
-
-
-# Example usage
-if __name__ == "__main__":  # pragma: no cover
-    # Create an instance of ImageResizer
-    resizer = ImageResizer(target_size=5_000_000)
-
-    # Load an image as bytes (replace with your image file)
-    with open("/Users/paul/Downloads/gamenight.png", "rb") as f:
-        input_bytes = f.read()
-
-    # Resize to 5MB if needed
-    output_bytes = resizer.resize(input_bytes)
-
-    # Save output bytes to a file for verification
-    with open("resized_image.jpg", "wb") as f:
-        f.write(output_bytes)
-
-    print(f"Original size: {resizer.get_image_size(input_bytes) / 1_000_000:.2f} MB")
-    print(f"Final size: {resizer.get_image_size(output_bytes) / 1_000_000:.2f} MB")

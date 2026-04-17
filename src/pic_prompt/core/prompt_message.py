@@ -64,7 +64,7 @@ class PromptMessage:
         if not all(isinstance(item, PromptContent) for item in content):
             raise TypeError("All content items must be PromptContent objects")
         self._content_list = content
-        self._role = role
+        self.role = role
 
     @property
     def content(self) -> List[PromptContent]:
@@ -94,10 +94,12 @@ class PromptMessage:
     @role.setter
     def role(self, role: str) -> None:
         """Set the message role"""
-        if role not in MessageRole.ALLOWED_ROLES:
-            raise ValueError(f"Invalid message role: {role}")
+        try:
+            MessageRole(role)
+        except ValueError as exc:
+            raise ValueError(f"Invalid message role: {role}") from exc
         self._role = role
 
     def __repr__(self) -> str:
         """String representation of the message"""
-        return f"PromptMessage(" f"role={self.role!r}, " f"content={self.content!r})"
+        return f"PromptMessage(" f"role={str(self.role)!r}, " f"content={self.content!r})"

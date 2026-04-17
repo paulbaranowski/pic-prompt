@@ -1,13 +1,14 @@
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any, Optional, Union
 
 
 class ImageConfigRegistry:
-    """
-    ProviderHelper implementation for Anthropic.
+    """Registry that holds provider-specific ImageConfig instances (openai,
+    anthropic, gemini). Used by ImageLoader to look up size limits and format
+    constraints when encoding images for a given provider.
     """
 
     def __init__(self) -> None:
-        self.configs = {}
+        self.configs: Dict[str, ImageConfig] = {}
 
         self.configs["anthropic"] = ImageConfig(
             requires_base64=True,
@@ -48,7 +49,7 @@ class ImageConfig:
         self,
         requires_base64: bool = False,
         max_size: int = 5_000_000,  # 5MB default
-        supported_formats: List[str] = ["png", "jpeg"],
+        supported_formats: Optional[List[str]] = None,
         needs_download: bool = False,
     ):
         """Initialize image configuration
@@ -57,10 +58,15 @@ class ImageConfig:
             requires_base64: Whether images need base64 encoding
             max_size: Maximum allowed image size in bytes
             supported_formats: List of supported image formats
+            needs_download: Whether the provider requires images to be
+                downloaded before encoding (False means raw URLs can be
+                embedded directly).
         """
         self._requires_base64 = requires_base64
         self._max_size = max_size
-        self._supported_formats = supported_formats
+        self._supported_formats = (
+            supported_formats if supported_formats is not None else ["png", "jpeg"]
+        )
         self._needs_download = needs_download
 
     @property
@@ -114,7 +120,18 @@ class ImageConfig:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "ImageConfig":
-        """Create config from dictionary"""
+        """Create config from dictionary.
+
+        Expected keys:
+            requires_base64 (bool): Whether images need base64 encoding.
+                Defaults to False.
+            max_size (int): Maximum allowed image size in bytes.
+                Defaults to 5_000_000.
+            supported_formats (List[str]): List of supported image MIME types
+                or format names. Defaults to ["png", "jpeg"].
+            needs_download (bool): Whether the provider requires images to be
+                downloaded before encoding. Defaults to False.
+        """
         return cls(
             requires_base64=data.get("requires_base64", False),
             max_size=data.get("max_size", 5_000_000),

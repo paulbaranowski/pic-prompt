@@ -1,3 +1,7 @@
+"""Defines PromptContent, the atomic unit of content within a PromptMessage -- either
+a text string or an image path/URL. Used by Provider.format_content() to produce
+provider-specific content blocks."""
+
 from pic_prompt.core.message_type import MessageType
 
 
@@ -42,7 +46,7 @@ class PromptContent:
 
     def __init__(self, content: str, type: str):
         self._data = content
-        self._type: str = type
+        self.type = type
 
     def __repr__(self) -> str:
         """String representation of the content"""
@@ -71,6 +75,8 @@ class PromptContent:
     @type.setter
     def type(self, message_type: str) -> None:
         """Set the type"""
-        if message_type not in MessageType.ALLOWED_TYPES:
-            raise ValueError(f"Invalid message type: {message_type}")
-        self._type = message_type
+        try:
+            validated = MessageType(message_type)
+        except ValueError as exc:
+            raise ValueError(f"Invalid message type: {message_type}") from exc
+        self._type = validated

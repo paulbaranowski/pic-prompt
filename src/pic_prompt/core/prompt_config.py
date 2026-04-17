@@ -8,7 +8,7 @@ from typing import Optional, Dict, Any, List
 class PromptConfig:
     """
     Configuration for prompt generation.
-    For content generation (pic_prompt.get_content_for()), only the provider_name is required.
+    For content generation (pic_prompt.get_prompt()), only the provider_name is required.
 
     Args:
         provider_name: The name of the provider to use.
@@ -39,8 +39,8 @@ class PromptConfig:
         self._temperature = temperature
         self._max_tokens = max_tokens
         self._top_p = top_p
-        self._json_response = json_response  # Not implemented
-        self._is_batch = is_batch  # Not implemented
+        self._json_response = json_response  # Reserved for future use: structured JSON output mode
+        self._is_batch = is_batch  # Reserved for future use: batch API processing mode
         self._method = method
         self._url = url
 

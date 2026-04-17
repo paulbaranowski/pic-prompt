@@ -1,10 +1,13 @@
 from enum import Enum
 
 
-class MessageType:
-    """Types of messages that can be included in a prompt"""
+class MessageType(str, Enum):
+    """Classifies the content format within a PromptContent block: TEXT for
+    plain strings, IMAGE for image paths or URLs. Used by
+    Provider.format_content() to dispatch formatting."""
 
     IMAGE = "image"
     TEXT = "text"
 
-    ALLOWED_TYPES = [IMAGE, TEXT]
+    def __str__(self) -> str:
+        return self.value

@@ -1,3 +1,11 @@
+"""Logging utilities for pic_prompt. setup_logger() returns a module-scoped logger
+and only attaches a handler if neither the logger nor the root logger already has one.
+disable_logging() performs a process-wide logging shutdown: it clears handlers and
+raises the level on every existing logger (not just pic_prompt), then calls
+logging.disable(logging.CRITICAL) to suppress all future log output. This will
+silence third-party libraries as well. To silence only pic_prompt logs, set the
+level on its logger instead: logging.getLogger("pic_prompt").setLevel(logging.CRITICAL)."""
+
 import logging
 import sys
 from typing import Optional
@@ -35,7 +43,12 @@ def setup_logger(name: str, level: Optional[str] = None) -> logging.Logger:
 
 
 def disable_logging():
-    """Disable all logging output"""
+    """Disable all logging output across the entire process.
+
+    Warning: This is not scoped to pic_prompt. It clears handlers on every
+    existing logger and calls logging.disable(logging.CRITICAL), which
+    suppresses all future log output process-wide.
+    """
     # Disable root logger
     root = logging.getLogger()
     root.handlers = []

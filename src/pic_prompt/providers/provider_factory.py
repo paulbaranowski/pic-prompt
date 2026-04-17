@@ -16,7 +16,8 @@ class ProviderFactory:
     MODEL_ANTHROPIC = "anthropic"
     MODEL_GEMINI = "gemini"
 
-    # Default mapping of provider names to their helper classes
+    # Class-level shared default. Instance __init__ copies this to self._providers,
+    # so mutating the instance dict is safe. Do NOT mutate this class-level dict directly.
     _default_helpers: Dict[str, Type[Provider]] = {
         MODEL_OPENAI: ProviderOpenAI,
         MODEL_ANTHROPIC: ProviderAnthropic,
