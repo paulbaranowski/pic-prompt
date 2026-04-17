@@ -41,7 +41,10 @@ class ImageRegistry:
         return len(self.image_data)
 
     def get_binary_data(self, image_path: str) -> Optional[bytes]:
-        return self.image_data[image_path].binary_data
+        entry = self.image_data.get(image_path)
+        if entry is None:
+            return None
+        return entry.binary_data
 
     def get_all_image_data(self) -> List[ImageData]:
         return list(self.image_data.values())
