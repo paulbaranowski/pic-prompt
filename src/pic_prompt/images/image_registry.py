@@ -25,6 +25,8 @@ class ImageRegistry:
         )
 
     def add_image_data(self, image_data: ImageData):
+        if image_data.image_path is None:
+            raise ValueError("Cannot register ImageData without an image_path")
         self.image_data[image_data.image_path] = image_data
         self._has_local_images = self._has_local_images or image_data.is_local_image()
 
@@ -38,7 +40,7 @@ class ImageRegistry:
     def num_images(self) -> int:
         return len(self.image_data)
 
-    def get_binary_data(self, image_path: str) -> ImageData:
+    def get_binary_data(self, image_path: str) -> Optional[bytes]:
         return self.image_data[image_path].binary_data
 
     def get_all_image_data(self) -> List[ImageData]:
@@ -87,12 +89,15 @@ class ImageRegistry:
             for image_data in self.get_all_image_data():
                 if image_data.binary_data is not None:
                     continue
+                path = image_data.image_path
+                if path is None:
+                    continue
                 try:
-                    logger.info(f"Downloading image {image_data.image_path}")
-                    image_data = downloader.download(image_data.image_path)
+                    logger.info(f"Downloading image {path}")
+                    image_data = downloader.download(path)
                     self.add_image_data(image_data)
                 except ImageSourceError as e:
-                    errors.append((image_data.image_path, str(e)))
+                    errors.append((path, str(e)))
 
             if errors:
                 error_messages = "\n".join(
@@ -123,10 +128,13 @@ class ImageRegistry:
             for image_data in self.get_all_image_data():
                 if image_data.binary_data is not None:
                     continue
+                path = image_data.image_path
+                if path is None:
+                    continue
                 try:
-                    image_data = await downloader.download_async(image_data.image_path)
+                    image_data = await downloader.download_async(path)
                     # replace the old image data with the new one
                     self.add_image_data(image_data)
                 except ImageSourceError as e:
-                    print(f"Error downloading image {image_data.image_path}: {e}")
+                    print(f"Error downloading image {path}: {e}")
         return self

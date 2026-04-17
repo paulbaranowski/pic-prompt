@@ -31,7 +31,10 @@ class ImageData:
     """
 
     def __init__(
-        self, image_path: str = None, binary_data: bytes = None, media_type: str = None
+        self,
+        image_path: Optional[str] = None,
+        binary_data: Optional[bytes] = None,
+        media_type: Optional[str] = None,
     ):
         """Initialize an ImageData instance.
 
@@ -40,10 +43,10 @@ class ImageData:
             binary_data (bytes, optional): Raw binary image data. Defaults to None.
             media_type (str, optional): Media/MIME type of the image. Defaults to None.
         """
-        self.image_obj: Image.Image = None
-        self.image_path: str = image_path
-        self.binary_data: bytes = binary_data
-        self.media_type: str = media_type
+        self.image_obj: Optional[Image.Image] = None
+        self.image_path = image_path
+        self.binary_data = binary_data
+        self.media_type = media_type
         self.provider_encoded_images: Dict[str, str] = {}
         self.local_file_source = LocalFileSource()
 
@@ -66,20 +69,20 @@ class ImageData:
         return f"ImageData(image_path={self.image_path}, binary_data={len(self.binary_data) if self.binary_data else 'none'}, media_type={self.media_type}, is_local={self.is_local_image()}, encoded_images={encoded_images})"
 
     @property
-    def image_path(self) -> str:
+    def image_path(self) -> Optional[str]:
         """Get the image path.
 
         Returns:
-            str: The path or URL to the image
+            Optional[str]: The path or URL to the image, or None if unset
         """
         return self._image_path
 
     @image_path.setter
-    def image_path(self, value: str):
+    def image_path(self, value: Optional[str]):
         """Set the image path.
 
         Args:
-            value (str): The path or URL to the image
+            value (Optional[str]): The path or URL to the image
         """
         self._image_path = value
 
@@ -92,16 +95,16 @@ class ImageData:
         return self.local_file_source.can_handle(self.image_path)
 
     @property
-    def binary_data(self) -> bytes:
+    def binary_data(self) -> Optional[bytes]:
         """Get the binary data of the image.
 
         Returns:
-            bytes: The raw binary data of the image
+            Optional[bytes]: The raw binary data of the image, or None if unset
         """
         return self._binary_data
 
     @binary_data.setter
-    def binary_data(self, value: bytes):
+    def binary_data(self, value: Optional[bytes]):
         """Set the binary data of the image.
 
         Side effect: When value is not None, constructs a PIL Image object from
@@ -131,16 +134,16 @@ class ImageData:
         self._binary_data = value
 
     @property
-    def media_type(self) -> str:
+    def media_type(self) -> Optional[str]:
         """Get the media type of the image.
 
         Returns:
-            str: The media type (MIME type) of the image
+            Optional[str]: The media type (MIME type) of the image, or None if unset
         """
         return self._media_type
 
     @media_type.setter
-    def media_type(self, value: str):
+    def media_type(self, value: Optional[str]):
         """Set the media type of the image.
 
         Args:
@@ -154,6 +157,10 @@ class ImageData:
         Returns:
             tuple[int, int]: A tuple containing the width and height of the image in pixels
         """
+        if self.image_obj is None:
+            raise ImageProcessingError(
+                f"Cannot get dimensions: no image loaded for {self.image_path}"
+            )
         return self.image_obj.size
 
     def add_provider_encoded_image(self, provider_name: str, encoded_image: str):
@@ -165,14 +172,14 @@ class ImageData:
         """
         self.provider_encoded_images[provider_name] = encoded_image
 
-    def get_encoded_data_for(self, provider_name: str = "openai") -> Optional[str]:
+    def get_encoded_data_for(self, provider_name: str = "openai") -> str:
         """Get the encoded image data for a specific provider.
 
         Args:
             provider_name (str, optional): Name of the provider to get encoded data for. Defaults to "openai".
 
         Returns:
-            Optional[str]: The encoded image data for the specified provider if it exists
+            str: The encoded image data for the specified provider.
 
         Raises:
             ValueError: If no encoded data exists for the specified provider
@@ -181,7 +188,7 @@ class ImageData:
             raise ValueError(
                 f"Encoded data not found for provider {provider_name} in ImageData for {self.image_path}"
             )
-        return self.provider_encoded_images.get(provider_name)
+        return self.provider_encoded_images[provider_name]
 
     def encode_as_base64(self, provider_name: str = "openai") -> Optional[str]:
         """Encode the binary image data as base64 and store it for a provider.
@@ -199,7 +206,10 @@ class ImageData:
         return None
 
     def resize_and_encode(
-        self, max_size: int, provider_name: str = "openai", resizer: ImageResizer = None
+        self,
+        max_size: int,
+        provider_name: str = "openai",
+        resizer: Optional[ImageResizer] = None,
     ) -> "ImageData":
         """
         Resize and encode an image to meet provider size requirements.
@@ -224,6 +234,10 @@ class ImageData:
         """
         logger.info(f"Processing image data for {self.image_path}")
 
+        if self.binary_data is None:
+            raise ImageProcessingError(
+                f"Cannot resize: no binary data loaded for {self.image_path}"
+            )
         resizer = resizer or ImageResizer(target_size=max_size)
         self.binary_data = resizer.resize(self.binary_data)
 

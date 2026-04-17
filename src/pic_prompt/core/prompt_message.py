@@ -2,7 +2,7 @@
 Core message types and classes for prompt building
 """
 
-from typing import List
+from typing import List, Optional
 from pic_prompt.core.message_type import MessageType
 from pic_prompt.core.message_role import MessageRole
 from pic_prompt.core.prompt_content import PromptContent
@@ -50,7 +50,7 @@ class PromptMessage:
     def __init__(
         self,
         role: str,
-        content: List[PromptContent] = None,
+        content: Optional[List[PromptContent]] = None,
     ):
         """Initialize a prompt message
 

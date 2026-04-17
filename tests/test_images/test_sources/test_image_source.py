@@ -57,4 +57,4 @@ def test_get_media_type(dummy_source):
 def test_abstract_class():
     """Test that ImageSource cannot be instantiated directly"""
     with pytest.raises(TypeError):
-        ImageSource()
+        ImageSource()  # pyright: ignore[reportAbstractUsage]

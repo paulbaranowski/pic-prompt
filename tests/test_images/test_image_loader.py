@@ -57,6 +57,7 @@ def test_in_memory_image_can_be_read():
     assert img.mode == "RGB"
     # Get color of center pixel
     center_color = img.getpixel((50, 50))
+    assert isinstance(center_color, tuple)
     assert center_color[0] > 250  # Should be mostly red
 
 

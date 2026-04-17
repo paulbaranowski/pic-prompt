@@ -98,5 +98,6 @@ def test_init_invalid_content():
         TypeError, match="All content items must be PromptContent objects"
     ):
         PromptMessage(
-            role=MessageRole.USER, content=[{"type": "text", "content": "test"}]
+            role=MessageRole.USER,
+            content=[{"type": "text", "content": "test"}],  # pyright: ignore[reportArgumentType]
         )

@@ -50,6 +50,7 @@ packages = ["src/pic_prompt"]
 dev = [
     "black>=24.8.0",
     "coverage",
+    "pyright>=1.1.408",
     "pytest-cov",
 ]
 
@@ -60,3 +61,8 @@ exclude_lines = [
     "abc.abstractmethod",
     "@abstractmethod"
 ]
+
+[tool.pyright]
+include = ["src", "tests"]
+typeCheckingMode = "basic"
+pythonVersion = "3.13"

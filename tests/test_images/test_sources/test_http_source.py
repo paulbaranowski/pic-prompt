@@ -5,6 +5,7 @@ from pic_prompt.images.errors import ImageSourceError
 import os
 import mimetypes
 import aiohttp
+from typing import cast
 
 REAL_IMAGE_URL = "https://hstwhmjryocigvbffybk.supabase.co/storage/v1/object/public/promptfoo_images/all-pro-dadfs.PNG"
 
@@ -34,7 +35,9 @@ class DummyAiohttpClientSessionForTest:
 
 @pytest.fixture
 def http_source():
-    return HttpSource(async_http_client=DummyAiohttpClientSessionForTest())
+    return HttpSource(
+        async_http_client=cast(aiohttp.ClientSession, DummyAiohttpClientSessionForTest())
+    )
 
 
 class DummyAiohttpResponse:
@@ -109,7 +112,7 @@ def test_get_real_image_sync():
 @pytest.mark.asyncio
 async def test_get_image_async_success():
     dummy_session = DummyAiohttpClientSession()
-    http_source = HttpSource(async_http_client=dummy_session)
+    http_source = HttpSource(async_http_client=cast(aiohttp.ClientSession, dummy_session))
     data = await http_source.get_image_async("http://example.com/image.jpg")
     assert data == b"async data"
 
@@ -117,7 +120,7 @@ async def test_get_image_async_success():
 @pytest.mark.asyncio
 async def test_get_image_async_http_error():
     dummy_session = DummyAiohttpClientSession(response_code=404)
-    http_source = HttpSource(async_http_client=dummy_session)
+    http_source = HttpSource(async_http_client=cast(aiohttp.ClientSession, dummy_session))
     with pytest.raises(ImageSourceError) as err:
         await http_source.get_image_async("http://example.com/error")
     assert "HTTP 404" in str(err.value)
@@ -218,7 +221,7 @@ async def test_get_image_async_403_error():
 
     session = DummyAiohttpClientSession(response_code=403)
 
-    http_source = HttpSource(async_http_client=session)
+    http_source = HttpSource(async_http_client=cast(aiohttp.ClientSession, session))
     with pytest.raises(ImageSourceError) as err:
         await http_source.get_image_async("http://example.com/forbidden")
 
@@ -232,7 +235,7 @@ async def test_get_image_async_500_error():
 
     session = DummyAiohttpClientSession(response_code=500)
 
-    http_source = HttpSource(async_http_client=session)
+    http_source = HttpSource(async_http_client=cast(aiohttp.ClientSession, session))
     with pytest.raises(ImageSourceError) as err:
         await http_source.get_image_async("http://example.com/server-error")
 
@@ -246,7 +249,7 @@ async def test_get_image_async_client_error(mocker):
         side_effect=aiohttp.ClientError("Connection error")
     )
 
-    http_source = HttpSource(async_http_client=session)
+    http_source = HttpSource(async_http_client=cast(aiohttp.ClientSession, session))
     with pytest.raises(ImageSourceError) as err:
         await http_source.get_image_async("http://example.com/error")
 
@@ -267,7 +270,7 @@ def test_owns_async_client_when_no_session_provided():
 def test_does_not_own_async_client_when_session_provided():
     """Test that _owns_async_client is False when a session is passed"""
     session = DummyAiohttpClientSession()
-    source = HttpSource(async_http_client=session)
+    source = HttpSource(async_http_client=cast(aiohttp.ClientSession, session))
     assert source._owns_async_client is False
     assert source.async_http_client is session
 
