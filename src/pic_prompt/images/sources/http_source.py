@@ -5,6 +5,7 @@ Loads images from HTTP(S) URLs.
 import requests
 import aiohttp
 import mimetypes
+from typing import Optional
 from pic_prompt.images.sources.image_source import ImageSource
 from pic_prompt.images.errors import ImageSourceError
 
@@ -17,7 +18,9 @@ class HttpSource(ImageSource):
     """
 
     def __init__(
-        self, async_http_client: aiohttp.ClientSession = None, timeout: int = 30
+        self,
+        async_http_client: Optional[aiohttp.ClientSession] = None,
+        timeout: int = 30,
     ) -> None:
         # If caller provides a session, they own it and are responsible for closing it.
         # If we create one lazily, we own it and aclose() will close it.
@@ -86,7 +89,7 @@ class HttpSource(ImageSource):
 
         try:
             async with self.async_http_client.get(
-                url, timeout=self.timeout
+                url, timeout=aiohttp.ClientTimeout(total=self.timeout)
             ) as response:
                 if response.status == 403:
                     raise ImageSourceError(
@@ -114,19 +117,21 @@ class HttpSource(ImageSource):
             await self.async_http_client.close()
             self.async_http_client = None
 
-    def can_handle(self, path: str) -> bool:
+    def can_handle(self, path: Optional[str]) -> bool:
         """
         Check if this source can handle the given URL.
 
         Args:
-            path (str): The URL to check.
+            path (Optional[str]): The URL to check.
 
         Returns:
             bool: True if the URL starts with 'http://' or 'https://', otherwise False.
         """
+        if path is None:
+            return False
         return path.startswith("http://") or path.startswith("https://")
 
-    def get_media_type(self, path: str) -> str:
+    def get_media_type(self, path: str) -> Optional[str]:
         """
         Get the media type of the image.
         """

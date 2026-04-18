@@ -2,7 +2,7 @@
 Loads images from S3.
 """
 
-from typing import Any, Tuple
+from typing import Any, Optional, Tuple
 import mimetypes
 from pic_prompt.images.sources.image_source import ImageSource
 from pic_prompt.images.errors import ImageSourceError
@@ -71,16 +71,18 @@ class S3Source(ImageSource):
         except Exception as e:
             raise ImageSourceError(f"Failed to download {s3_uri}: {e}")
 
-    def can_handle(self, path: str) -> bool:
+    def can_handle(self, path: Optional[str]) -> bool:
         """
         Check if this source can handle the given path.
 
         Args:
-            path (str): The URI to check.
+            path (Optional[str]): The URI to check.
 
         Returns:
             bool: True if the path starts with 's3://', False otherwise.
         """
+        if path is None:
+            return False
         return path.startswith("s3://")
 
     def _parse_s3_uri(self, uri: str) -> Tuple[str, str]:
@@ -101,7 +103,7 @@ class S3Source(ImageSource):
             raise ImageSourceError(f"Invalid S3 URI: {uri}")
         return parts[0], parts[1]
 
-    def get_media_type(self, path: str) -> str:
+    def get_media_type(self, path: str) -> Optional[str]:
         """
         Get the media type of the image.
         """

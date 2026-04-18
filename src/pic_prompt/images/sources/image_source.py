@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 
 
 class ImageSource(ABC):
@@ -45,12 +46,12 @@ class ImageSource(ABC):
         pass
 
     @abstractmethod
-    def can_handle(self, path: str) -> bool:
+    def can_handle(self, path: Optional[str]) -> bool:
         """
         Check if this image source can handle the given URL/path.
 
         Args:
-            path (str): The URL or path of the image.
+            path (Optional[str]): The URL or path of the image, or None.
 
         Returns:
             bool: True if the source can handle the image, False otherwise.
@@ -58,8 +59,9 @@ class ImageSource(ABC):
         pass
 
     @abstractmethod
-    def get_media_type(self, path: str) -> str:
+    def get_media_type(self, path: str) -> Optional[str]:
         """
-        Get the media type of the image.
+        Get the media type of the image. Returns None if the type cannot be
+        inferred (e.g. unknown extension).
         """
         pass

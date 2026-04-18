@@ -4,6 +4,7 @@ LocalFileSource - Loads images from the local filesystem.
 
 import asyncio
 import mimetypes
+from typing import Optional
 from pic_prompt.images.sources.image_source import ImageSource
 from pic_prompt.images.errors import (
     ImageSourceError,
@@ -54,21 +55,21 @@ class LocalFileSource(ImageSource):
         except IOError as e:
             raise ImageSourceError(f"Failed to read {path}: {e}")
 
-    def can_handle(self, path: str) -> bool:
+    def can_handle(self, path: Optional[str]) -> bool:
         """Check if this source can handle the given path.
 
         For local files, we assume any path that does not contain a URI scheme
         (i.e. does not match the pattern <prefix>://).
 
         Args:
-            path (str): The path or URI to check.
+            path (Optional[str]): The path or URI to check.
 
         Returns:
             bool: True if the file is a local file, False otherwise.
         """
         return path is not None and path != "" and "://" not in path
 
-    def get_media_type(self, path: str) -> str:
+    def get_media_type(self, path: str) -> Optional[str]:
         """
         Get the media type of the image.
         """

@@ -156,6 +156,8 @@ class PicPrompt:
             image_data (ImageData): The pre-downloaded image data to add
         """
         self.image_registry.add_image_data(image_data)
+        if image_data.image_path is None:
+            raise ValueError("Cannot add ImageData without an image_path")
         pm = PromptMessage(role="user")
         pm.add_image(image_data.image_path)
         self.image_messages.append(pm)
